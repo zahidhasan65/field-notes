@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: field-notes-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-field_notes}
+      POSTGRES_USER: ${POSTGRES_USER:-fieldnotes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - field_notes_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fieldnotes} -d ${POSTGRES_DB:-field_notes}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - field-notes-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: field-notes-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-field_notes}
+      DB_USERNAME: ${POSTGRES_USER:-fieldnotes}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8080:8080"
+    networks:
+      - field-notes-network
+
+volumes:
+  field_notes_postgres_data:
+
+networks:
+  field-notes-network:
+    driver: bridge
