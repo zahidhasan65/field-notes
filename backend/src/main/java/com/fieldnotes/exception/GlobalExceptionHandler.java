@@ -28,6 +28,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiError> handleInvalidCredentials(
+        InvalidCredentialsException exception,
+        HttpServletRequest request
+    ) {
+        return buildError(
+            HttpStatus.UNAUTHORIZED,
+            exception.getMessage(),
+            request.getRequestURI(),
+            Map.of()
+        );
+    }
+
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiError> handleDuplicate(
         DuplicateResourceException exception,

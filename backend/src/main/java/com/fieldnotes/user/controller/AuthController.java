@@ -1,5 +1,7 @@
 package com.fieldnotes.user.controller;
 
+import com.fieldnotes.user.dto.LoginRequest;
+import com.fieldnotes.user.dto.LoginResponse;
 import com.fieldnotes.user.dto.RegisterRequest;
 import com.fieldnotes.user.dto.UserResponse;
 import com.fieldnotes.user.service.UserService;
@@ -30,5 +32,14 @@ public class AuthController {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+        @Valid @RequestBody LoginRequest request
+    ) {
+        LoginResponse response = userService.login(request);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -33,6 +33,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-field_notes}
       DB_USERNAME: ${POSTGRES_USER:-fieldnotes}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:8080"
     networks:
@@ -44,3 +45,5 @@ volumes:
 networks:
   field-notes-network:
     driver: bridge
+
+

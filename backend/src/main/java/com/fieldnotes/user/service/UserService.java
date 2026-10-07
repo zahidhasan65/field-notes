@@ -1,6 +1,10 @@
 package com.fieldnotes.user.service;
 
+import com.fieldnotes.auth.service.JwtService;
 import com.fieldnotes.exception.DuplicateResourceException;
+import com.fieldnotes.exception.InvalidCredentialsException;
+import com.fieldnotes.user.dto.LoginRequest;
+import com.fieldnotes.user.dto.LoginResponse;
 import com.fieldnotes.user.dto.RegisterRequest;
 import com.fieldnotes.user.dto.UserResponse;
 import com.fieldnotes.user.entity.User;
@@ -13,13 +17,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public UserService(
         UserRepository userRepository,
-        PasswordEncoder passwordEncoder
+        PasswordEncoder passwordEncoder,
+        JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public boolean emailExists(String email) {
@@ -50,4 +57,24 @@ public class UserService {
             savedUser.getCreatedAt()
         );
     }
+
+    public LoginResponse login(LoginRequest request) {
+        String email = request.email().trim().toLowerCase();
+
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
+            .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        String token = jwtService.generateToken(
+            user.getId(),
+            user.getEmail()
+        );
+
+        return new LoginResponse(token, "Bearer");
+    }
 }
+
+
