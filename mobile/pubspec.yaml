@@ -1,0 +1,41 @@
+name: mobile
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  cupertino_icons: ^1.0.8
+  flutter_bloc: ^9.1.1
+  equatable: ^3.0.0
+  http: ^1.6.0
+  shared_preferences: ^2.5.5
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  connectivity_plus: ^7.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^6.0.0
+  sqflite_common_ffi: ^2.4.0+3
+  mocktail: ^1.0.5
+
+flutter:
+
+  uses-material-design: true
+  assets:
+    - assets/images/field_notes_app_logo_v2.png
+    - assets/images/splash_landscape.png
+

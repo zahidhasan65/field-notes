@@ -1,0 +1,68 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import '../constants/api_constants.dart';
+import 'api_response.dart';
+
+class ApiService {
+  Future<ApiResponse> post({
+    required String endpoint,
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
+    try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+        headers: headers,
+        body: body == null ? null : jsonEncode(body),
+      );
+
+      dynamic responseData;
+
+      if (response.body.isNotEmpty) {
+        try {
+          responseData = jsonDecode(response.body);
+        } catch (_) {
+          responseData = response.body;
+        }
+      }
+
+      final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
+
+      return ApiResponse(
+        isSuccess: isSuccess,
+        statusCode: response.statusCode,
+        data: responseData,
+        errorMessage: isSuccess ? null : _extractErrorMessage(responseData),
+      );
+    } catch (e) {
+      return ApiResponse(
+        isSuccess: false,
+        statusCode: 0,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  String _extractErrorMessage(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+
+      if (message is String && message.isNotEmpty) {
+        return message;
+      }
+    }
+
+    return 'Something went wrong. Please try again.';
+  }
+}
