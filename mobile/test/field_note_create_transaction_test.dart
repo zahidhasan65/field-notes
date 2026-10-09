@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:mobile/core/constants/sync_constants.dart';
@@ -95,19 +95,10 @@ void main() {
 
     expect(noteResult.length, 1);
     expect(noteResult.first['title'], 'Test Note');
-    expect(
-      noteResult.first['sync_status'],
-      SyncStatus.pendingCreate,
-    );
+    expect(noteResult.first['sync_status'], SyncStatus.pendingCreate);
 
     expect(queueResult.length, 1);
-    expect(
-      queueResult.first['entity_type'],
-      SyncEntityType.fieldNote,
-    );
-    expect(
-      queueResult.first['operation'],
-      SyncOperation.create,
-    );
+    expect(queueResult.first['entity_type'], SyncEntityType.fieldNote);
+    expect(queueResult.first['operation'], SyncOperation.create);
   });
 }

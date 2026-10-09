@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:mobile/core/constants/sync_constants.dart';
@@ -23,9 +23,7 @@ void main() {
     final userId = 'user-update-test';
     final customerId = 'customer-update-test';
 
-    final createdAt = DateTime.now()
-        .toUtc()
-        .toIso8601String();
+    final createdAt = DateTime.now().toUtc().toIso8601String();
 
     await db.insert('users', {
       'id': userId,
@@ -46,9 +44,7 @@ void main() {
       'sync_status': SyncStatus.synced,
     });
 
-    final updatedAt = DateTime.now()
-        .toUtc()
-        .toIso8601String();
+    final updatedAt = DateTime.now().toUtc().toIso8601String();
 
     final customer = CustomerLocal(
       id: customerId,
@@ -89,24 +85,12 @@ void main() {
     );
 
     expect(customerResult.length, 1);
-    expect(
-      customerResult.first['name'],
-      'Updated Customer Name',
-    );
-    expect(
-      customerResult.first['sync_status'],
-      SyncStatus.pendingUpdate,
-    );
+    expect(customerResult.first['name'], 'Updated Customer Name');
+    expect(customerResult.first['sync_status'], SyncStatus.pendingUpdate);
 
     expect(queueResult.length, 1);
-    expect(
-      queueResult.first['operation'],
-      SyncOperation.update,
-    );
-    expect(
-      queueResult.first['status'],
-      SyncQueueStatus.pending,
-    );
+    expect(queueResult.first['operation'], SyncOperation.update);
+    expect(queueResult.first['status'], SyncQueueStatus.pending);
 
     await db.delete(
       'sync_queue',
@@ -114,17 +98,9 @@ void main() {
       whereArgs: [customerId],
     );
 
-    await db.delete(
-      'customers',
-      where: 'id = ?',
-      whereArgs: [customerId],
-    );
+    await db.delete('customers', where: 'id = ?', whereArgs: [customerId]);
 
-    await db.delete(
-      'users',
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
+    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
 
     await db.close();
   });

@@ -115,19 +115,13 @@ void main() {
 
     await engine.sync();
 
-    expect(
-      remote.calls,
-      [
-        'CREATE:CUSTOMER:customer-1',
-        'CREATE:SITE:site-1',
-        'CREATE:FIELD_NOTE:note-1',
-      ],
-    );
+    expect(remote.calls, [
+      'CREATE:CUSTOMER:customer-1',
+      'CREATE:SITE:site-1',
+      'CREATE:FIELD_NOTE:note-1',
+    ]);
 
-    expect(
-      await repository.getPendingItems(),
-      isEmpty,
-    );
+    expect(await repository.getPendingItems(), isEmpty);
   });
 
   test('successful sync should remove queue item', () async {
@@ -160,10 +154,7 @@ void main() {
 
     await engine.sync();
 
-    expect(
-      await repository.getPendingItems(),
-      isEmpty,
-    );
+    expect(await repository.getPendingItems(), isEmpty);
 
     expect(remote.calls.length, 1);
   });
@@ -186,8 +177,7 @@ void main() {
       ),
     );
 
-    final remote = FakeSyncRemoteDataSource()
-      ..shouldFail = true;
+    final remote = FakeSyncRemoteDataSource()..shouldFail = true;
 
     final engine = SyncEngine(
       queueRepository: repository,
@@ -207,15 +197,7 @@ void main() {
     );
 
     expect(result.length, 1);
-    expect(
-      result.first['status'],
-      SyncQueueStatus.failed,
-    );
-    expect(
-      result.first['retry_count'],
-      1,
-    );
+    expect(result.first['status'], SyncQueueStatus.failed);
+    expect(result.first['retry_count'], 1);
   });
 }
-
-

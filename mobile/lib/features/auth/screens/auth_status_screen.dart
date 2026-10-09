@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../home/bloc/home_bloc.dart';
+import '../../home/bloc/home_event.dart';
+import '../../home/screens/home_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_state.dart';
 import 'login_screen.dart';
@@ -19,9 +22,11 @@ class AuthStatusScreen extends StatelessWidget {
         }
 
         if (state is AuthAuthenticated) {
-          // Home screen will be connected in the next step.
-          return const Scaffold(
-            body: Center(child: Text('Home screen coming next')),
+          return BlocProvider<HomeBloc>(
+            key: ValueKey(state.user.id),
+            create: (_) =>
+                HomeBloc(userId: state.user.id)..add(const HomeLoadRequested()),
+            child: const HomeScreen(),
           );
         }
 

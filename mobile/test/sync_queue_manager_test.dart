@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:mobile/core/constants/sync_constants.dart';
@@ -42,9 +42,7 @@ void main() {
       localDataSource: SyncQueueLocalDataSource(),
     );
 
-    final manager = SyncQueueManager(
-      queueRepository: repository,
-    );
+    final manager = SyncQueueManager(queueRepository: repository);
 
     await manager.enqueue(
       item(
@@ -76,9 +74,7 @@ void main() {
       localDataSource: SyncQueueLocalDataSource(),
     );
 
-    final manager = SyncQueueManager(
-      queueRepository: repository,
-    );
+    final manager = SyncQueueManager(queueRepository: repository);
 
     await manager.enqueue(
       item(
@@ -98,10 +94,7 @@ void main() {
 
     final items = await repository.getPendingItems();
 
-    expect(
-      items.where((item) => item.entityId == 'customer-2').isEmpty,
-      true,
-    );
+    expect(items.where((item) => item.entityId == 'customer-2').isEmpty, true);
   });
 
   test('UPDATE + UPDATE should keep latest UPDATE', () async {
@@ -111,9 +104,7 @@ void main() {
       localDataSource: SyncQueueLocalDataSource(),
     );
 
-    final manager = SyncQueueManager(
-      queueRepository: repository,
-    );
+    final manager = SyncQueueManager(queueRepository: repository);
 
     await manager.enqueue(
       item(
@@ -145,9 +136,7 @@ void main() {
       localDataSource: SyncQueueLocalDataSource(),
     );
 
-    final manager = SyncQueueManager(
-      queueRepository: repository,
-    );
+    final manager = SyncQueueManager(queueRepository: repository);
 
     await manager.enqueue(
       item(
@@ -178,9 +167,7 @@ void main() {
       localDataSource: SyncQueueLocalDataSource(),
     );
 
-    final manager = SyncQueueManager(
-      queueRepository: repository,
-    );
+    final manager = SyncQueueManager(queueRepository: repository);
 
     await manager.enqueue(
       item(

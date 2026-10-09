@@ -11,14 +11,11 @@ import 'package:mobile/data/sync/sync_coordinator.dart';
 import 'package:mobile/data/sync/sync_engine.dart';
 
 class FakeConnectivityService extends ConnectivityService {
-  final StreamController<bool> controller =
-      StreamController<bool>.broadcast();
+  final StreamController<bool> controller = StreamController<bool>.broadcast();
 
   bool online;
 
-  FakeConnectivityService({
-    this.online = false,
-  });
+  FakeConnectivityService({this.online = false});
 
   @override
   Future<bool> isOnline() async => online;
@@ -52,12 +49,12 @@ class FakeSyncEngine extends SyncEngine {
   int syncCallCount = 0;
 
   FakeSyncEngine()
-      : super(
-          queueRepository: LocalSyncQueueRepository(
-            localDataSource: SyncQueueLocalDataSource(),
-          ),
-          remoteDataSource: FakeRemoteDataSource(),
-        );
+    : super(
+        queueRepository: LocalSyncQueueRepository(
+          localDataSource: SyncQueueLocalDataSource(),
+        ),
+        remoteDataSource: FakeRemoteDataSource(),
+      );
 
   @override
   Future<void> sync() async {
@@ -71,15 +68,13 @@ class BlockingFakeSyncEngine extends SyncEngine {
 
   int syncCallCount = 0;
 
-  BlockingFakeSyncEngine({
-    required this.syncStarted,
-    required this.releaseSync,
-  }) : super(
-          queueRepository: LocalSyncQueueRepository(
-            localDataSource: SyncQueueLocalDataSource(),
-          ),
-          remoteDataSource: FakeRemoteDataSource(),
-        );
+  BlockingFakeSyncEngine({required this.syncStarted, required this.releaseSync})
+    : super(
+        queueRepository: LocalSyncQueueRepository(
+          localDataSource: SyncQueueLocalDataSource(),
+        ),
+        remoteDataSource: FakeRemoteDataSource(),
+      );
 
   @override
   Future<void> sync() async {

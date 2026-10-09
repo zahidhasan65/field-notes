@@ -8,9 +8,8 @@ import '../models/sync_queue_item.dart';
 class SiteLocalDataSource {
   final DatabaseHelper databaseHelper;
 
-  SiteLocalDataSource({
-    DatabaseHelper? databaseHelper,
-  }) : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  SiteLocalDataSource({DatabaseHelper? databaseHelper})
+    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
 
   Future<void> insertSite(SiteLocal site) async {
     final db = await databaseHelper.database;
@@ -79,9 +78,7 @@ class SiteLocalDataSource {
 
     await db.update(
       'sites',
-      {
-        'deleted_at': deletedAt,
-      },
+      {'deleted_at': deletedAt},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -167,9 +164,7 @@ class SiteLocalDataSource {
     );
   }
 
-  Future<void> restoreSites(
-    List<SiteLocal> sites,
-  ) async {
+  Future<void> restoreSites(List<SiteLocal> sites) async {
     final db = await databaseHelper.database;
 
     await db.transaction((txn) async {

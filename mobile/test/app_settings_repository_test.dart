@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:mobile/data/local/database/database_helper.dart';
@@ -17,14 +17,9 @@ void main() {
 
     final repository = AppSettingsRepository();
 
-    await repository.saveSetting(
-      'default_note_status',
-      'OPEN',
-    );
+    await repository.saveSetting('default_note_status', 'OPEN');
 
-    final value = await repository.getSetting(
-      'default_note_status',
-    );
+    final value = await repository.getSetting('default_note_status');
 
     expect(value, 'OPEN');
 

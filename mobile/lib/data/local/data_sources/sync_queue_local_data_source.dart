@@ -1,4 +1,4 @@
-﻿import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../database/database_helper.dart';
 import '../models/sync_queue_item.dart';
@@ -6,9 +6,8 @@ import '../models/sync_queue_item.dart';
 class SyncQueueLocalDataSource {
   final DatabaseHelper databaseHelper;
 
-  SyncQueueLocalDataSource({
-    DatabaseHelper? databaseHelper,
-  }) : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  SyncQueueLocalDataSource({DatabaseHelper? databaseHelper})
+    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
 
   Future<void> addToQueue(SyncQueueItem item) async {
     final db = await databaseHelper.database;
@@ -63,10 +62,7 @@ class SyncQueueLocalDataSource {
     );
   }
 
-  Future<void> markFailed(
-    int id, {
-    required String errorMessage,
-  }) async {
+  Future<void> markFailed(int id, {required String errorMessage}) async {
     final db = await databaseHelper.database;
 
     final result = await db.query(
@@ -81,8 +77,7 @@ class SyncQueueLocalDataSource {
       return;
     }
 
-    final currentRetryCount =
-        (result.first['retry_count'] as int?) ?? 0;
+    final currentRetryCount = (result.first['retry_count'] as int?) ?? 0;
 
     await db.update(
       'sync_queue',
@@ -102,10 +97,7 @@ class SyncQueueLocalDataSource {
 
     await db.update(
       'sync_queue',
-      {
-        'status': 'PENDING',
-        'error_message': null,
-      },
+      {'status': 'PENDING', 'error_message': null},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -114,11 +106,7 @@ class SyncQueueLocalDataSource {
   Future<void> removeFromQueue(int id) async {
     final db = await databaseHelper.database;
 
-    await db.delete(
-      'sync_queue',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete('sync_queue', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> removeEntityOperations(

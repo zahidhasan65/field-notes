@@ -22,15 +22,13 @@ class RestoreRepository {
     SiteLocalDataSource? siteLocalDataSource,
     FieldNoteLocalDataSource? fieldNoteLocalDataSource,
     SessionStorage? sessionStorage,
-  })  : remoteDataSource =
-            remoteDataSource ?? RestoreRemoteDataSource(),
-        customerLocalDataSource =
-            customerLocalDataSource ?? CustomerLocalDataSource(),
-        siteLocalDataSource =
-            siteLocalDataSource ?? SiteLocalDataSource(),
-        fieldNoteLocalDataSource =
-            fieldNoteLocalDataSource ?? FieldNoteLocalDataSource(),
-        sessionStorage = sessionStorage ?? SessionStorage();
+  }) : remoteDataSource = remoteDataSource ?? RestoreRemoteDataSource(),
+       customerLocalDataSource =
+           customerLocalDataSource ?? CustomerLocalDataSource(),
+       siteLocalDataSource = siteLocalDataSource ?? SiteLocalDataSource(),
+       fieldNoteLocalDataSource =
+           fieldNoteLocalDataSource ?? FieldNoteLocalDataSource(),
+       sessionStorage = sessionStorage ?? SessionStorage();
 
   Future<void> restore() async {
     final userId = await sessionStorage.getUserId();
@@ -39,16 +37,14 @@ class RestoreRepository {
       throw StateError('User ID is not available.');
     }
 
-    final remoteCustomers =
-        await remoteDataSource.getCustomers();
+    final remoteCustomers = await remoteDataSource.getCustomers();
 
     final customers = remoteCustomers.map((data) {
       return CustomerLocal(
         id: data['id'] as String,
         userId: userId,
         name: data['name'] as String,
-        contactInformation:
-            data['contactInformation'] as String?,
+        contactInformation: data['contactInformation'] as String?,
         createdAt: data['createdAt'] as String,
         updatedAt: data['updatedAt'] as String,
         deletedAt: null,
@@ -59,8 +55,7 @@ class RestoreRepository {
     await customerLocalDataSource.restoreCustomers(customers);
 
     for (final customer in customers) {
-      final remoteSites =
-          await remoteDataSource.getSites(customer.id);
+      final remoteSites = await remoteDataSource.getSites(customer.id);
 
       final sites = remoteSites.map((data) {
         return SiteLocal(
@@ -78,8 +73,7 @@ class RestoreRepository {
       await siteLocalDataSource.restoreSites(sites);
 
       for (final site in sites) {
-        final remoteFieldNotes =
-            await remoteDataSource.getFieldNotes(site.id);
+        final remoteFieldNotes = await remoteDataSource.getFieldNotes(site.id);
 
         final fieldNotes = remoteFieldNotes.map((data) {
           return FieldNoteLocal(
@@ -99,8 +93,7 @@ class RestoreRepository {
           );
         }).toList();
 
-        await fieldNoteLocalDataSource
-            .restoreFieldNotes(fieldNotes);
+        await fieldNoteLocalDataSource.restoreFieldNotes(fieldNotes);
       }
     }
 

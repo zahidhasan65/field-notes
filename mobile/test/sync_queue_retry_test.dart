@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:mobile/core/constants/sync_constants.dart';
@@ -39,10 +39,7 @@ void main() {
 
     await dataSource.markProcessing(id);
 
-    await dataSource.markFailed(
-      id,
-      errorMessage: 'Network unavailable',
-    );
+    await dataSource.markFailed(id, errorMessage: 'Network unavailable');
 
     final failedResult = await db.query(
       'sync_queue',
@@ -52,18 +49,9 @@ void main() {
     );
 
     expect(failedResult.length, 1);
-    expect(
-      failedResult.first['status'],
-      SyncQueueStatus.failed,
-    );
-    expect(
-      failedResult.first['retry_count'],
-      1,
-    );
-    expect(
-      failedResult.first['error_message'],
-      'Network unavailable',
-    );
+    expect(failedResult.first['status'], SyncQueueStatus.failed);
+    expect(failedResult.first['retry_count'], 1);
+    expect(failedResult.first['error_message'], 'Network unavailable');
 
     await dataSource.markPending(id);
 
@@ -74,17 +62,8 @@ void main() {
       limit: 1,
     );
 
-    expect(
-      pendingResult.first['status'],
-      SyncQueueStatus.pending,
-    );
-    expect(
-      pendingResult.first['retry_count'],
-      1,
-    );
-    expect(
-      pendingResult.first['error_message'],
-      null,
-    );
+    expect(pendingResult.first['status'], SyncQueueStatus.pending);
+    expect(pendingResult.first['retry_count'], 1);
+    expect(pendingResult.first['error_message'], null);
   });
 }

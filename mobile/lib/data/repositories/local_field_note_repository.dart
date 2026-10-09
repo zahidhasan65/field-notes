@@ -5,9 +5,8 @@ import '../local/models/sync_queue_item.dart';
 class LocalFieldNoteRepository {
   final FieldNoteLocalDataSource localDataSource;
 
-  LocalFieldNoteRepository({
-    FieldNoteLocalDataSource? localDataSource,
-  }) : localDataSource = localDataSource ?? FieldNoteLocalDataSource();
+  LocalFieldNoteRepository({FieldNoteLocalDataSource? localDataSource})
+    : localDataSource = localDataSource ?? FieldNoteLocalDataSource();
 
   Future<void> saveFieldNote(FieldNoteLocal fieldNote) async =>
       localDataSource.insertFieldNote(fieldNote);
@@ -15,31 +14,28 @@ class LocalFieldNoteRepository {
   Future<void> createFieldNoteWithSyncQueue({
     required FieldNoteLocal fieldNote,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.createFieldNoteWithSyncQueue(
-        fieldNote: fieldNote,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.createFieldNoteWithSyncQueue(
+    fieldNote: fieldNote,
+    queueItem: queueItem,
+  );
 
   Future<void> updateFieldNoteWithSyncQueue({
     required FieldNoteLocal fieldNote,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.updateFieldNoteWithSyncQueue(
-        fieldNote: fieldNote,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.updateFieldNoteWithSyncQueue(
+    fieldNote: fieldNote,
+    queueItem: queueItem,
+  );
 
   Future<void> deleteFieldNoteWithSyncQueue({
     required String id,
     required String deletedAt,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.softDeleteFieldNoteWithSyncQueue(
-        id: id,
-        deletedAt: deletedAt,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.softDeleteFieldNoteWithSyncQueue(
+    id: id,
+    deletedAt: deletedAt,
+    queueItem: queueItem,
+  );
 
   Future<FieldNoteLocal?> getFieldNoteById(String id) async =>
       localDataSource.getFieldNoteById(id);
@@ -59,4 +55,3 @@ class LocalFieldNoteRepository {
   Future<void> markAsSyncFailed(String id) async =>
       localDataSource.markAsSyncFailed(id);
 }
-

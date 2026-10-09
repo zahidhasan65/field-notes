@@ -74,20 +74,11 @@ void main() {
 
     expect(customerResult.length, 1);
     expect(customerResult.first['name'], 'Test Customer');
-    expect(
-      customerResult.first['sync_status'],
-      SyncStatus.pendingCreate,
-    );
+    expect(customerResult.first['sync_status'], SyncStatus.pendingCreate);
 
     expect(queueResult.length, 1);
-    expect(
-      queueResult.first['operation'],
-      SyncOperation.create,
-    );
-    expect(
-      queueResult.first['status'],
-      SyncQueueStatus.pending,
-    );
+    expect(queueResult.first['operation'], SyncOperation.create);
+    expect(queueResult.first['status'], SyncQueueStatus.pending);
 
     await db.delete(
       'sync_queue',
@@ -95,16 +86,8 @@ void main() {
       whereArgs: [customerId],
     );
 
-    await db.delete(
-      'customers',
-      where: 'id = ?',
-      whereArgs: [customerId],
-    );
+    await db.delete('customers', where: 'id = ?', whereArgs: [customerId]);
 
-    await db.delete(
-      'users',
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
+    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
   });
 }

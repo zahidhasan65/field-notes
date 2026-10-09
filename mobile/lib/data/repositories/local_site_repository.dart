@@ -5,9 +5,8 @@ import '../local/models/sync_queue_item.dart';
 class LocalSiteRepository {
   final SiteLocalDataSource localDataSource;
 
-  LocalSiteRepository({
-    SiteLocalDataSource? localDataSource,
-  }) : localDataSource = localDataSource ?? SiteLocalDataSource();
+  LocalSiteRepository({SiteLocalDataSource? localDataSource})
+    : localDataSource = localDataSource ?? SiteLocalDataSource();
 
   Future<void> saveSite(SiteLocal site) async =>
       localDataSource.insertSite(site);
@@ -16,30 +15,23 @@ class LocalSiteRepository {
     required SiteLocal site,
     required SyncQueueItem queueItem,
   }) async =>
-      localDataSource.createSiteWithSyncQueue(
-        site: site,
-        queueItem: queueItem,
-      );
+      localDataSource.createSiteWithSyncQueue(site: site, queueItem: queueItem);
 
   Future<void> updateSiteWithSyncQueue({
     required SiteLocal site,
     required SyncQueueItem queueItem,
   }) async =>
-      localDataSource.updateSiteWithSyncQueue(
-        site: site,
-        queueItem: queueItem,
-      );
+      localDataSource.updateSiteWithSyncQueue(site: site, queueItem: queueItem);
 
   Future<void> deleteSiteWithSyncQueue({
     required String id,
     required String deletedAt,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.softDeleteSiteWithSyncQueue(
-        id: id,
-        deletedAt: deletedAt,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.softDeleteSiteWithSyncQueue(
+    id: id,
+    deletedAt: deletedAt,
+    queueItem: queueItem,
+  );
 
   Future<SiteLocal?> getSiteById(String id) async =>
       localDataSource.getSiteById(id);
@@ -59,4 +51,3 @@ class LocalSiteRepository {
   Future<void> markAsSyncFailed(String id) async =>
       localDataSource.markAsSyncFailed(id);
 }
-

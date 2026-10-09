@@ -1,4 +1,4 @@
-﻿import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -12,17 +12,13 @@ void main() {
 
   setUp(() {
     connectivity = MockConnectivity();
-    service = ConnectivityService(
-      connectivity: connectivity,
-    );
+    service = ConnectivityService(connectivity: connectivity);
   });
 
   test('returns true when a network connection exists', () async {
     when(
       () => connectivity.checkConnectivity(),
-    ).thenAnswer(
-      (_) async => [ConnectivityResult.wifi],
-    );
+    ).thenAnswer((_) async => [ConnectivityResult.wifi]);
 
     final result = await service.isOnline();
 
@@ -32,9 +28,7 @@ void main() {
   test('returns false when there is no network connection', () async {
     when(
       () => connectivity.checkConnectivity(),
-    ).thenAnswer(
-      (_) async => [ConnectivityResult.none],
-    );
+    ).thenAnswer((_) async => [ConnectivityResult.none]);
 
     final result = await service.isOnline();
 

@@ -8,9 +8,8 @@ import '../models/sync_queue_item.dart';
 class CustomerLocalDataSource {
   final DatabaseHelper databaseHelper;
 
-  CustomerLocalDataSource({
-    DatabaseHelper? databaseHelper,
-  }) : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  CustomerLocalDataSource({DatabaseHelper? databaseHelper})
+    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
 
   Future<void> insertCustomer(CustomerLocal customer) async {
     final db = await databaseHelper.database;
@@ -74,10 +73,7 @@ class CustomerLocalDataSource {
     );
   }
 
-  Future<void> softDeleteCustomer(
-    String id,
-    String deletedAt,
-  ) async {
+  Future<void> softDeleteCustomer(String id, String deletedAt) async {
     final db = await databaseHelper.database;
 
     await db.update(
@@ -168,9 +164,7 @@ class CustomerLocalDataSource {
     );
   }
 
-  Future<void> restoreCustomers(
-    List<CustomerLocal> customers,
-  ) async {
+  Future<void> restoreCustomers(List<CustomerLocal> customers) async {
     final db = await databaseHelper.database;
 
     await db.transaction((txn) async {

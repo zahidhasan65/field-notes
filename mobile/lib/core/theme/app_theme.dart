@@ -5,15 +5,16 @@ import 'app_text_styles.dart';
 
 abstract final class AppTheme {
   static ThemeData light() {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      brightness: Brightness.light,
-    ).copyWith(
-      primary: AppColors.primary,
-      onPrimary: Colors.white,
-      surface: AppColors.surface,
-      error: AppColors.error,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: AppColors.primary,
+          onPrimary: Colors.white,
+          surface: AppColors.surface,
+          error: AppColors.error,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -36,9 +37,7 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(
-            color: AppColors.border,
-          ),
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
 
@@ -51,28 +50,19 @@ abstract final class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.border,
-          ),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.border,
-          ),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.error,
-          ),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         labelStyle: AppTextStyles.bodySecondary,
         hintStyle: AppTextStyles.bodySecondary,
@@ -95,9 +85,7 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           minimumSize: const Size.fromHeight(48),
-          side: const BorderSide(
-            color: AppColors.border,
-          ),
+          side: const BorderSide(color: AppColors.border),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -109,9 +97,7 @@ abstract final class AppTheme {
         backgroundColor: AppColors.surface,
         elevation: 0,
         indicatorColor: AppColors.primaryLight,
-        labelTextStyle: WidgetStatePropertyAll(
-          AppTextStyles.caption,
-        ),
+        labelTextStyle: WidgetStatePropertyAll(AppTextStyles.caption),
       ),
 
       dividerTheme: const DividerThemeData(

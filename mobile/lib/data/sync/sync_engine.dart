@@ -31,9 +31,7 @@ class SyncEngine {
     }
   }
 
-  List<SyncQueueItem> _sortByDependency(
-    List<SyncQueueItem> items,
-  ) {
+  List<SyncQueueItem> _sortByDependency(List<SyncQueueItem> items) {
     final priority = {
       SyncEntityType.customer: 1,
       SyncEntityType.site: 2,
@@ -120,9 +118,7 @@ class SyncEngine {
         break;
 
       default:
-        throw UnsupportedError(
-          'Unsupported entity type: ',
-        );
+        throw UnsupportedError('Unsupported entity type: ');
     }
   }
 
@@ -150,14 +146,7 @@ class SyncEngine {
         break;
 
       default:
-        throw UnsupportedError(
-          'Unsupported entity type: ',
-        );
+        throw UnsupportedError('Unsupported entity type: ');
     }
   }
 }
-
-
-
-
-

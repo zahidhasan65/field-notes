@@ -9,11 +9,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   final RestoreRepository restoreRepository;
 
-  AuthBloc({
-    required this.authRepository,
-    RestoreRepository? restoreRepository,
-  })  : restoreRepository = restoreRepository ?? RestoreRepository(),
-        super(const AuthInitial()) {
+  AuthBloc({required this.authRepository, RestoreRepository? restoreRepository})
+    : restoreRepository = restoreRepository ?? RestoreRepository(),
+      super(const AuthInitial()) {
     on<AuthStarted>(_onAuthStarted);
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthRegisterRequested>(_onAuthRegisterRequested);

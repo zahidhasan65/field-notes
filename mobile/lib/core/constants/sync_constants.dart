@@ -1,4 +1,4 @@
-﻿class SyncStatus {
+class SyncStatus {
   static const String synced = 'SYNCED';
   static const String pendingCreate = 'PENDING_CREATE';
   static const String pendingUpdate = 'PENDING_UPDATE';

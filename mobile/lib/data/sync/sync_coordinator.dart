@@ -30,12 +30,12 @@ class SyncCoordinator {
       await syncNow();
     }
 
-    _connectivitySubscription =
-        connectivityService.onConnectivityChanged.listen((isOnline) {
-      if (isOnline) {
-        syncNow();
-      }
-    });
+    _connectivitySubscription = connectivityService.onConnectivityChanged
+        .listen((isOnline) {
+          if (isOnline) {
+            syncNow();
+          }
+        });
   }
 
   Future<void> syncNow() async {

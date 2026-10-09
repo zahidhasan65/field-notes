@@ -1,4 +1,4 @@
-﻿class SiteLocal {
+class SiteLocal {
   final String id;
   final String customerId;
   final String siteName;

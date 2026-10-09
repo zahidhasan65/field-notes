@@ -24,9 +24,7 @@ void main() {
     final userId = 'user-delete-test';
     final customerId = 'customer-delete-test';
 
-    final createdAt = DateTime.now()
-        .toUtc()
-        .toIso8601String();
+    final createdAt = DateTime.now().toUtc().toIso8601String();
 
     await db.insert('users', {
       'id': userId,
@@ -47,9 +45,7 @@ void main() {
       'sync_status': SyncStatus.synced,
     });
 
-    final deletedAt = DateTime.now()
-        .toUtc()
-        .toIso8601String();
+    final deletedAt = DateTime.now().toUtc().toIso8601String();
 
     final queueItem = SyncQueueItem(
       entityType: SyncEntityType.customer,
@@ -81,24 +77,12 @@ void main() {
     );
 
     expect(customerResult.length, 1);
-    expect(
-      customerResult.first['deleted_at'],
-      deletedAt,
-    );
-    expect(
-      customerResult.first['sync_status'],
-      SyncStatus.pendingDelete,
-    );
+    expect(customerResult.first['deleted_at'], deletedAt);
+    expect(customerResult.first['sync_status'], SyncStatus.pendingDelete);
 
     expect(queueResult.length, 1);
-    expect(
-      queueResult.first['operation'],
-      SyncOperation.delete,
-    );
-    expect(
-      queueResult.first['status'],
-      SyncQueueStatus.pending,
-    );
+    expect(queueResult.first['operation'], SyncOperation.delete);
+    expect(queueResult.first['status'], SyncQueueStatus.pending);
 
     await db.delete(
       'sync_queue',
@@ -106,18 +90,8 @@ void main() {
       whereArgs: [customerId],
     );
 
-    await db.delete(
-      'customers',
-      where: 'id = ?',
-      whereArgs: [customerId],
-    );
+    await db.delete('customers', where: 'id = ?', whereArgs: [customerId]);
 
-    await db.delete(
-      'users',
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
-
+    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
   });
 }
-

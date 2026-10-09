@@ -1,15 +1,9 @@
-﻿import '../local/models/sync_queue_item.dart';
+import '../local/models/sync_queue_item.dart';
 
 abstract class SyncRemoteDataSource {
-  Future<void> create(
-    SyncQueueItem item,
-  );
+  Future<void> create(SyncQueueItem item);
 
-  Future<void> update(
-    SyncQueueItem item,
-  );
+  Future<void> update(SyncQueueItem item);
 
-  Future<void> delete(
-    SyncQueueItem item,
-  );
+  Future<void> delete(SyncQueueItem item);
 }

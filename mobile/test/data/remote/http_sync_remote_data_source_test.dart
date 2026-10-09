@@ -24,11 +24,7 @@ class FakeApiService extends ApiService {
     lastBody = body;
     lastToken = token;
 
-    return ApiResponse(
-      isSuccess: true,
-      statusCode: 201,
-      data: {},
-    );
+    return ApiResponse(isSuccess: true, statusCode: 201, data: {});
   }
 
   @override
@@ -42,28 +38,17 @@ class FakeApiService extends ApiService {
     lastBody = body;
     lastToken = token;
 
-    return ApiResponse(
-      isSuccess: true,
-      statusCode: 200,
-      data: {},
-    );
+    return ApiResponse(isSuccess: true, statusCode: 200, data: {});
   }
 
   @override
-  Future<ApiResponse> delete({
-    required String endpoint,
-    String? token,
-  }) async {
+  Future<ApiResponse> delete({required String endpoint, String? token}) async {
     lastMethod = 'DELETE';
     lastEndpoint = endpoint;
     lastBody = null;
     lastToken = token;
 
-    return ApiResponse(
-      isSuccess: true,
-      statusCode: 204,
-      data: null,
-    );
+    return ApiResponse(isSuccess: true, statusCode: 204, data: null);
   }
 }
 
@@ -108,23 +93,17 @@ void main() {
       entityType: 'CUSTOMER',
       entityId: 'customer-1',
       operation: 'CREATE',
-      payload: {
-        'name': 'ABC Customer',
-        'contactInformation': '01700000000',
-      },
+      payload: {'name': 'ABC Customer', 'contactInformation': '01700000000'},
     );
 
     await remoteDataSource.create(item);
 
     expect(apiService.lastMethod, 'POST');
     expect(apiService.lastEndpoint, '/customers');
-    expect(
-      apiService.lastBody,
-      {
-        'name': 'ABC Customer',
-        'contactInformation': '01700000000',
-      },
-    );
+    expect(apiService.lastBody, {
+      'name': 'ABC Customer',
+      'contactInformation': '01700000000',
+    });
     expect(apiService.lastToken, 'test-token');
   });
 
@@ -143,17 +122,8 @@ void main() {
     await remoteDataSource.update(item);
 
     expect(apiService.lastMethod, 'PUT');
-    expect(
-      apiService.lastEndpoint,
-      '/customers/customer-1/sites/site-1',
-    );
-    expect(
-      apiService.lastBody,
-      {
-        'name': 'Updated Site',
-        'address': 'Dhaka',
-      },
-    );
+    expect(apiService.lastEndpoint, '/customers/customer-1/sites/site-1');
+    expect(apiService.lastBody, {'name': 'Updated Site', 'address': 'Dhaka'});
   });
 
   test('creates field note with site dependency', () async {
@@ -171,16 +141,8 @@ void main() {
     await remoteDataSource.create(item);
 
     expect(apiService.lastMethod, 'POST');
-    expect(
-      apiService.lastEndpoint,
-      '/sites/site-1/field-notes',
-    );
-    expect(
-      apiService.lastBody,
-      {
-        'note': 'Everything is okay.',
-      },
-    );
+    expect(apiService.lastEndpoint, '/sites/site-1/field-notes');
+    expect(apiService.lastBody, {'note': 'Everything is okay.'});
   });
 
   test('deletes customer with correct endpoint', () async {
@@ -188,9 +150,7 @@ void main() {
       entityType: 'CUSTOMER',
       entityId: 'customer-1',
       operation: 'DELETE',
-      payload: {
-        'name': 'ABC Customer',
-      },
+      payload: {'name': 'ABC Customer'},
     );
 
     await remoteDataSource.delete(item);

@@ -5,9 +5,8 @@ import '../local/models/sync_queue_item.dart';
 class LocalCustomerRepository {
   final CustomerLocalDataSource localDataSource;
 
-  LocalCustomerRepository({
-    CustomerLocalDataSource? localDataSource,
-  }) : localDataSource = localDataSource ?? CustomerLocalDataSource();
+  LocalCustomerRepository({CustomerLocalDataSource? localDataSource})
+    : localDataSource = localDataSource ?? CustomerLocalDataSource();
 
   Future<void> saveCustomer(CustomerLocal customer) async =>
       localDataSource.insertCustomer(customer);
@@ -15,31 +14,28 @@ class LocalCustomerRepository {
   Future<void> createCustomerWithSyncQueue({
     required CustomerLocal customer,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.createCustomerWithSyncQueue(
-        customer: customer,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.createCustomerWithSyncQueue(
+    customer: customer,
+    queueItem: queueItem,
+  );
 
   Future<void> updateCustomerWithSyncQueue({
     required CustomerLocal customer,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.updateCustomerWithSyncQueue(
-        customer: customer,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.updateCustomerWithSyncQueue(
+    customer: customer,
+    queueItem: queueItem,
+  );
 
   Future<void> deleteCustomerWithSyncQueue({
     required String id,
     required String deletedAt,
     required SyncQueueItem queueItem,
-  }) async =>
-      localDataSource.softDeleteCustomerWithSyncQueue(
-        id: id,
-        deletedAt: deletedAt,
-        queueItem: queueItem,
-      );
+  }) async => localDataSource.softDeleteCustomerWithSyncQueue(
+    id: id,
+    deletedAt: deletedAt,
+    queueItem: queueItem,
+  );
 
   Future<CustomerLocal?> getCustomerById(String id) async =>
       localDataSource.getCustomerById(id);
@@ -59,4 +55,3 @@ class LocalCustomerRepository {
   Future<void> markAsSyncFailed(String id) async =>
       localDataSource.markAsSyncFailed(id);
 }
-

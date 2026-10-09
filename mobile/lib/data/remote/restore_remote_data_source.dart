@@ -8,8 +8,8 @@ class RestoreRemoteDataSource {
   RestoreRemoteDataSource({
     ApiService? apiService,
     SessionStorage? sessionStorage,
-  })  : apiService = apiService ?? ApiService(),
-        sessionStorage = sessionStorage ?? SessionStorage();
+  }) : apiService = apiService ?? ApiService(),
+       sessionStorage = sessionStorage ?? SessionStorage();
 
   Future<List<Map<String, dynamic>>> getCustomers() async {
     final response = await _get('/customers');
@@ -17,17 +17,13 @@ class RestoreRemoteDataSource {
     return _extractList(response.data);
   }
 
-  Future<List<Map<String, dynamic>>> getSites(
-    String customerId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getSites(String customerId) async {
     final response = await _get('/customers/$customerId/sites');
 
     return _extractList(response.data);
   }
 
-  Future<List<Map<String, dynamic>>> getFieldNotes(
-    String siteId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getFieldNotes(String siteId) async {
     final response = await _get('/sites/$siteId/field-notes');
 
     return _extractList(response.data);
@@ -40,10 +36,7 @@ class RestoreRemoteDataSource {
       throw StateError('Authentication token is not available.');
     }
 
-    final response = await apiService.get(
-      endpoint: endpoint,
-      token: token,
-    );
+    final response = await apiService.get(endpoint: endpoint, token: token);
 
     if (!response.isSuccess) {
       throw Exception(
@@ -83,8 +76,6 @@ class RestoreRemoteDataSource {
       }
     }
 
-    throw FormatException(
-      'Unexpected restore response format.',
-    );
+    throw FormatException('Unexpected restore response format.');
   }
 }

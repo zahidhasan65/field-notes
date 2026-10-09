@@ -1,0 +1,781 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
+import '../bloc/home_state.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FB),
+      body: SafeArea(
+        bottom: false,
+        child: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state is HomeInitial || state is HomeLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            if (state is HomeError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.cloud_off_rounded,
+                        size: 48,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: () => context
+                            .read<HomeBloc>()
+                            .add(const HomeLoadRequested()),
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: const Text('Try again'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (state is! HomeLoaded) {
+              return const SizedBox.shrink();
+            }
+
+            final notes = state.fieldNotes.reversed.take(5).toList();
+
+            return Column(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      context
+                          .read<HomeBloc>()
+                          .add(const HomeLoadRequested());
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 500),
+                      );
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _DashboardHeader(
+                          onRefresh: () => context
+                              .read<HomeBloc>()
+                              .add(const HomeLoadRequested()),
+                        ),
+                        Transform.translate(
+                          offset: const Offset(0, -22),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _OverviewPanel(
+                                  customers: state.customers.length,
+                                  sites: state.sites.length,
+                                  notes: state.fieldNotes.length,
+                                  completed: state.completedCount,
+                                ),
+                                const SizedBox(height: 26),
+                                Row(
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Recent Field Notes',
+                                        style: TextStyle(
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF17243A),
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(context)
+                                          ..hideCurrentSnackBar()
+                                          ..showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Field Notes list will be connected in the next UI step.',
+                                              ),
+                                            ),
+                                          );
+                                      },
+                                      child: const Text('See all'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                if (notes.isEmpty)
+                                  const _EmptyNotes()
+                                else
+                                  ...notes.map(
+                                    (note) => _NoteCard(
+                                      title: (note.title ?? '').trim().isEmpty
+                                          ? 'Untitled note'
+                                          : note.title!.trim(),
+                                      description:
+                                          (note.description ?? '').trim().isEmpty
+                                              ? 'No description added'
+                                              : note.description!.trim(),
+                                      status: note.status ?? 'PENDING',
+                                    ),
+                                  ),
+                                const SizedBox(height: 18),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 54,
+                                  child: FilledButton.icon(
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context)
+                                        ..hideCurrentSnackBar()
+                                        ..showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Create Field Note screen is coming next.',
+                                            ),
+                                          ),
+                                        );
+                                    },
+                                    icon: const Icon(Icons.add_rounded),
+                                    label: const Text(
+                                      'New Field Note',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor:
+                                          const Color(0xFF2563EB),
+                                      foregroundColor: Colors.white,
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const _BottomNavigation(),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardHeader extends StatelessWidget {
+  final VoidCallback onRefresh;
+
+  const _DashboardHeader({required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 48),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF3478F6), Color(0xFF1749C7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.17),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(
+                  Icons.location_on_outlined,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Field Notes',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+              ),
+              _HeaderIcon(
+                icon: Icons.refresh_rounded,
+                onTap: onRefresh,
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.17),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: Colors.white,
+                  size: 23,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          const Text(
+            'Good morning 👋',
+            style: TextStyle(
+              color: Color(0xFFDCE8FF),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 7),
+          const Text(
+            'Ready for your next site visit?',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 23,
+              height: 1.25,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 7),
+          const Text(
+            'Keep your field work organised and up to date.',
+            style: TextStyle(
+              color: Color(0xFFE1EAFF),
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderIcon extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _HeaderIcon({
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.17),
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: Colors.white, size: 22),
+        ),
+      ),
+    );
+  }
+}
+
+class _OverviewPanel extends StatelessWidget {
+  final int customers;
+  final int sites;
+  final int notes;
+  final int completed;
+
+  const _OverviewPanel({
+    required this.customers,
+    required this.sites,
+    required this.notes,
+    required this.completed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(17, 19, 17, 17),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(23),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF17345C).withValues(alpha: 0.07),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "Today's Overview",
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF17243A),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF1FF),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Text(
+                  'ALL TIME',
+                  style: TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 17),
+          Row(
+            children: [
+              Expanded(
+                child: _OverviewItem(
+                  label: 'Customers',
+                  count: customers,
+                  icon: Icons.people_alt_outlined,
+                  color: const Color(0xFF3478F6),
+                  background: const Color(0xFFEAF1FF),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _OverviewItem(
+                  label: 'Sites',
+                  count: sites,
+                  icon: Icons.location_on_outlined,
+                  color: const Color(0xFF0D9B83),
+                  background: const Color(0xFFE4F7F2),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _OverviewItem(
+                  label: 'Field Notes',
+                  count: notes,
+                  icon: Icons.description_outlined,
+                  color: const Color(0xFF8B5CF6),
+                  background: const Color(0xFFF1EAFE),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _OverviewItem(
+                  label: 'Completed',
+                  count: completed,
+                  icon: Icons.check_circle_outline_rounded,
+                  color: const Color(0xFF169B62),
+                  background: const Color(0xFFE5F7ED),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewItem extends StatelessWidget {
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color color;
+  final Color background;
+
+  const _OverviewItem({
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.color,
+    required this.background,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFD),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDF1F7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 13),
+          Text(
+            '$count',
+            style: const TextStyle(
+              color: Color(0xFF17243A),
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF68758A),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoteCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final String status;
+
+  const _NoteCard({
+    required this.title,
+    required this.description,
+    required this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = status.toUpperCase();
+    final Color statusColor;
+    final Color statusBackground;
+    final IconData statusIcon;
+
+    switch (normalized) {
+      case 'COMPLETED':
+        statusColor = const Color(0xFF138653);
+        statusBackground = const Color(0xFFE5F7ED);
+        statusIcon = Icons.check_circle_outline_rounded;
+        break;
+      case 'IN_PROGRESS':
+        statusColor = const Color(0xFFB7791F);
+        statusBackground = const Color(0xFFFFF4D9);
+        statusIcon = Icons.timelapse_rounded;
+        break;
+      default:
+        statusColor = const Color(0xFF3478F6);
+        statusBackground = const Color(0xFFEAF1FF);
+        statusIcon = Icons.schedule_rounded;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 11),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEDF1F7)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF17345C).withValues(alpha: 0.025),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 43,
+            height: 43,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF1FF),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: const Icon(
+              Icons.description_outlined,
+              color: Color(0xFF3478F6),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF17243A),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: Color(0xFF68758A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusBackground,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(statusIcon, size: 13, color: statusColor),
+                      const SizedBox(width: 5),
+                      Text(
+                        normalized.replaceAll('_', ' '),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: Color(0xFF9AA6B7),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyNotes extends StatelessWidget {
+  const _EmptyNotes();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(color: const Color(0xFFEDF1F7)),
+      ),
+      child: const Column(
+        children: [
+          Icon(
+            Icons.note_add_outlined,
+            size: 42,
+            color: Color(0xFF91A2BA),
+          ),
+          SizedBox(height: 12),
+          Text(
+            'No field notes yet',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF17243A),
+            ),
+          ),
+          SizedBox(height: 6),
+          Text(
+            'Your site visit notes will appear here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF68758A),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE8EDF5)),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF17345C).withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
+          child: Row(
+            children: const [
+              Expanded(
+                child: _NavigationItem(
+                  icon: Icons.dashboard_rounded,
+                  label: 'Home',
+                  selected: true,
+                ),
+              ),
+              Expanded(
+                child: _NavigationItem(
+                  icon: Icons.description_outlined,
+                  label: 'Notes',
+                ),
+              ),
+              Expanded(
+                child: _NavigationItem(
+                  icon: Icons.people_alt_outlined,
+                  label: 'Customers',
+                ),
+              ),
+              Expanded(
+                child: _NavigationItem(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavigationItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+
+  const _NavigationItem({
+    required this.icon,
+    required this.label,
+    this.selected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected
+        ? const Color(0xFF2563EB)
+        : const Color(0xFF8491A5);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(height: 5),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: color,
+            fontSize: 10,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}

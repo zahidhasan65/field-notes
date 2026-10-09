@@ -78,17 +78,10 @@ void main() {
 
     expect(siteResult.length, 1);
     expect(siteResult.first['deleted_at'], deletedAt.toIso8601String());
-    expect(
-      siteResult.first['sync_status'],
-      SyncStatus.pendingDelete,
-    );
+    expect(siteResult.first['sync_status'], SyncStatus.pendingDelete);
 
     expect(queueResult.length, 1);
     expect(queueResult.first['operation'], SyncOperation.delete);
     expect(queueResult.first['entity_type'], SyncEntityType.site);
   });
 }
-
-
-
-

@@ -8,9 +8,8 @@ import '../models/sync_queue_item.dart';
 class FieldNoteLocalDataSource {
   final DatabaseHelper databaseHelper;
 
-  FieldNoteLocalDataSource({
-    DatabaseHelper? databaseHelper,
-  }) : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  FieldNoteLocalDataSource({DatabaseHelper? databaseHelper})
+    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
 
   Future<void> insertFieldNote(FieldNoteLocal fieldNote) async {
     final db = await databaseHelper.database;
@@ -74,17 +73,12 @@ class FieldNoteLocalDataSource {
     );
   }
 
-  Future<void> softDeleteFieldNote(
-    String id,
-    String deletedAt,
-  ) async {
+  Future<void> softDeleteFieldNote(String id, String deletedAt) async {
     final db = await databaseHelper.database;
 
     await db.update(
       'field_notes',
-      {
-        'deleted_at': deletedAt,
-      },
+      {'deleted_at': deletedAt},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -170,9 +164,7 @@ class FieldNoteLocalDataSource {
     );
   }
 
-  Future<void> restoreFieldNotes(
-    List<FieldNoteLocal> fieldNotes,
-  ) async {
+  Future<void> restoreFieldNotes(List<FieldNoteLocal> fieldNotes) async {
     final db = await databaseHelper.database;
 
     await db.transaction((txn) async {

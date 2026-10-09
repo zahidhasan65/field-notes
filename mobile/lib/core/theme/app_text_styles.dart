@@ -38,8 +38,5 @@ abstract final class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
-  static const button = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-  );
+  static const button = TextStyle(fontSize: 14, fontWeight: FontWeight.w600);
 }

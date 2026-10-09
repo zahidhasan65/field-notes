@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:mobile/core/constants/sync_constants.dart';
@@ -113,15 +113,9 @@ void main() {
     expect(noteResult.first['title'], 'Updated Title');
     expect(noteResult.first['description'], 'Updated Description');
     expect(noteResult.first['status'], 'COMPLETED');
-    expect(
-      noteResult.first['sync_status'],
-      SyncStatus.pendingUpdate,
-    );
+    expect(noteResult.first['sync_status'], SyncStatus.pendingUpdate);
 
     expect(queueResult.length, 1);
-    expect(
-      queueResult.first['operation'],
-      SyncOperation.update,
-    );
+    expect(queueResult.first['operation'], SyncOperation.update);
   });
 }

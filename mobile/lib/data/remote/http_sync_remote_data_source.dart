@@ -13,8 +13,8 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
   HttpSyncRemoteDataSource({
     ApiService? apiService,
     SessionStorage? sessionStorage,
-  })  : apiService = apiService ?? ApiService(),
-        sessionStorage = sessionStorage ?? SessionStorage();
+  }) : apiService = apiService ?? ApiService(),
+       sessionStorage = sessionStorage ?? SessionStorage();
 
   @override
   Future<void> create(SyncQueueItem item) async {
@@ -31,10 +31,7 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
     await _send(item, SyncOperation.delete);
   }
 
-  Future<void> _send(
-    SyncQueueItem item,
-    String operation,
-  ) async {
+  Future<void> _send(SyncQueueItem item, String operation) async {
     final token = await sessionStorage.getToken();
 
     if (token == null || token.isEmpty) {
@@ -51,22 +48,20 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
 
     final response = switch (operation) {
       SyncOperation.create => await apiService.post(
-          endpoint: request.endpoint,
-          body: request.body,
-          token: token,
-        ),
+        endpoint: request.endpoint,
+        body: request.body,
+        token: token,
+      ),
       SyncOperation.update => await apiService.put(
-          endpoint: request.endpoint,
-          body: request.body,
-          token: token,
-        ),
+        endpoint: request.endpoint,
+        body: request.body,
+        token: token,
+      ),
       SyncOperation.delete => await apiService.delete(
-          endpoint: request.endpoint,
-          token: token,
-        ),
-      _ => throw UnsupportedError(
-          'Unsupported sync operation: $operation',
-        ),
+        endpoint: request.endpoint,
+        token: token,
+      ),
+      _ => throw UnsupportedError('Unsupported sync operation: $operation'),
     };
 
     if (!response.isSuccess) {
@@ -84,30 +79,16 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
   }) {
     switch (item.entityType) {
       case SyncEntityType.customer:
-        return _buildCustomerRequest(
-          item,
-          operation,
-          payload,
-        );
+        return _buildCustomerRequest(item, operation, payload);
 
       case SyncEntityType.site:
-        return _buildSiteRequest(
-          item,
-          operation,
-          payload,
-        );
+        return _buildSiteRequest(item, operation, payload);
 
       case SyncEntityType.fieldNote:
-        return _buildFieldNoteRequest(
-          item,
-          operation,
-          payload,
-        );
+        return _buildFieldNoteRequest(item, operation, payload);
 
       default:
-        throw UnsupportedError(
-          'Unsupported entity type: ${item.entityType}',
-        );
+        throw UnsupportedError('Unsupported entity type: ${item.entityType}');
     }
   }
 
@@ -137,17 +118,12 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
     final customerId = payload['customerId'];
 
     if (customerId == null || customerId.toString().isEmpty) {
-      throw StateError(
-        'customerId is required to sync site ${item.entityId}.',
-      );
+      throw StateError('customerId is required to sync site ${item.entityId}.');
     }
 
     final baseEndpoint = '/customers/$customerId/sites';
 
-    final body = {
-      'name': payload['siteName'],
-      'address': payload['address'],
-    };
+    final body = {'name': payload['siteName'], 'address': payload['address']};
 
     return _SyncRequest(
       endpoint: operation == SyncOperation.create
@@ -172,24 +148,18 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
 
     final baseEndpoint = '/sites/$siteId/field-notes';
 
-    final note = payload['note'] ??
-        payload['description'] ??
-        payload['title'];
+    final note = payload['note'] ?? payload['description'] ?? payload['title'];
 
     if (operation != SyncOperation.delete &&
         (note == null || note.toString().trim().isEmpty)) {
-      throw StateError(
-        'note is required to sync field note ${item.entityId}.',
-      );
+      throw StateError('note is required to sync field note ${item.entityId}.');
     }
 
     return _SyncRequest(
       endpoint: operation == SyncOperation.create
           ? baseEndpoint
           : '$baseEndpoint/${item.entityId}',
-      body: operation == SyncOperation.delete
-          ? null
-          : {'note': note},
+      body: operation == SyncOperation.delete ? null : {'note': note},
     );
   }
 }
@@ -198,8 +168,5 @@ class _SyncRequest {
   final String endpoint;
   final Map<String, dynamic>? body;
 
-  const _SyncRequest({
-    required this.endpoint,
-    required this.body,
-  });
+  const _SyncRequest({required this.endpoint, required this.body});
 }

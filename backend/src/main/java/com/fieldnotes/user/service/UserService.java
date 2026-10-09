@@ -33,7 +33,7 @@ public class UserService {
         return userRepository.existsByEmailAndDeletedAtIsNull(email);
     }
 
-    public UserResponse register(RegisterRequest request) {
+    public LoginResponse register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase();
 
         if (emailExists(email)) {
@@ -50,12 +50,19 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        return new UserResponse(
+        String token = jwtService.generateToken(
+            savedUser.getId(),
+            savedUser.getEmail()
+        );
+
+        UserResponse userResponse = new UserResponse(
             savedUser.getId(),
             savedUser.getName(),
             savedUser.getEmail(),
             savedUser.getCreatedAt()
         );
+
+        return new LoginResponse(token, "Bearer", userResponse);
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -73,8 +80,16 @@ public class UserService {
             user.getEmail()
         );
 
-        return new LoginResponse(token, "Bearer");
+        UserResponse userResponse = new UserResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getCreatedAt()
+        );
+
+        return new LoginResponse(token, "Bearer", userResponse);
     }
 }
+
 
 

@@ -6,9 +6,7 @@ import 'auth_remote_data_source.dart';
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiService apiService;
 
-  AuthRemoteDataSourceImpl({
-    required this.apiService,
-  });
+  AuthRemoteDataSourceImpl({required this.apiService});
 
   @override
   Future<AuthResponseModel> login({
@@ -17,21 +15,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     final response = await apiService.post(
       endpoint: ApiConstants.login,
-      body: {
-        'email': email,
-        'password': password,
-      },
+      body: {'email': email, 'password': password},
     );
 
     if (!response.isSuccess) {
-      throw Exception(
-        response.errorMessage ?? 'Login failed.',
-      );
+      throw Exception(response.errorMessage ?? 'Login failed.');
     }
 
-    return AuthResponseModel.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   @override
@@ -42,21 +33,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     final response = await apiService.post(
       endpoint: ApiConstants.register,
-      body: {
-        'name': name,
-        'email': email,
-        'password': password,
-      },
+      body: {'name': name, 'email': email, 'password': password},
     );
 
     if (!response.isSuccess) {
-      throw Exception(
-        response.errorMessage ?? 'Registration failed.',
-      );
+      throw Exception(response.errorMessage ?? 'Registration failed.');
     }
 
-    return AuthResponseModel.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
   }
 }

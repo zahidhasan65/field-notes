@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:mobile/data/local/database/database_helper.dart';
 
@@ -17,9 +17,7 @@ void main() {
       "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
     );
 
-    final tableNames = tables
-        .map((table) => table['name'] as String)
-        .toList();
+    final tableNames = tables.map((table) => table['name'] as String).toList();
 
     expect(tableNames, contains('users'));
     expect(tableNames, contains('customers'));

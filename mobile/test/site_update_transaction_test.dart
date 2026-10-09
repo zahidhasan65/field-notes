@@ -26,9 +26,7 @@ void main() {
     final customerId = 'customer-site-update';
     final siteId = 'site-update-test';
 
-    final createdAt = DateTime.now()
-        .toUtc()
-        .toIso8601String();
+    final createdAt = DateTime.now().toUtc().toIso8601String();
 
     await db.insert('users', {
       'id': userId,
@@ -60,9 +58,7 @@ void main() {
       'sync_status': SyncStatus.synced,
     });
 
-    final updatedAt = DateTime.now()
-        .toUtc()
-        .toIso8601String();
+    final updatedAt = DateTime.now().toUtc().toIso8601String();
 
     final site = SiteLocal(
       id: siteId,
@@ -85,10 +81,7 @@ void main() {
 
     final dataSource = SiteLocalDataSource();
 
-    await dataSource.updateSiteWithSyncQueue(
-      site: site,
-      queueItem: queueItem,
-    );
+    await dataSource.updateSiteWithSyncQueue(site: site, queueItem: queueItem);
 
     final siteResult = await db.query(
       'sites',
@@ -103,53 +96,20 @@ void main() {
     );
 
     expect(siteResult.length, 1);
-    expect(
-      siteResult.first['site_name'],
-      'Updated Site Name',
-    );
-    expect(
-      siteResult.first['address'],
-      'New Address',
-    );
-    expect(
-      siteResult.first['sync_status'],
-      SyncStatus.pendingUpdate,
-    );
+    expect(siteResult.first['site_name'], 'Updated Site Name');
+    expect(siteResult.first['address'], 'New Address');
+    expect(siteResult.first['sync_status'], SyncStatus.pendingUpdate);
 
     expect(queueResult.length, 1);
-    expect(
-      queueResult.first['operation'],
-      SyncOperation.update,
-    );
-    expect(
-      queueResult.first['status'],
-      SyncQueueStatus.pending,
-    );
+    expect(queueResult.first['operation'], SyncOperation.update);
+    expect(queueResult.first['status'], SyncQueueStatus.pending);
 
-    await db.delete(
-      'sync_queue',
-      where: 'entity_id = ?',
-      whereArgs: [siteId],
-    );
+    await db.delete('sync_queue', where: 'entity_id = ?', whereArgs: [siteId]);
 
-    await db.delete(
-      'sites',
-      where: 'id = ?',
-      whereArgs: [siteId],
-    );
+    await db.delete('sites', where: 'id = ?', whereArgs: [siteId]);
 
-    await db.delete(
-      'customers',
-      where: 'id = ?',
-      whereArgs: [customerId],
-    );
+    await db.delete('customers', where: 'id = ?', whereArgs: [customerId]);
 
-    await db.delete(
-      'users',
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
-
+    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
   });
 }
-

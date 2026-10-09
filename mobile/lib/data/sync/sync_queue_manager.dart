@@ -1,14 +1,12 @@
-﻿import '../../core/constants/sync_constants.dart';
+import '../../core/constants/sync_constants.dart';
 import '../local/models/sync_queue_item.dart';
 import '../repositories/local_sync_queue_repository.dart';
 
 class SyncQueueManager {
   final LocalSyncQueueRepository queueRepository;
 
-  SyncQueueManager({
-    LocalSyncQueueRepository? queueRepository,
-  }) : queueRepository =
-            queueRepository ?? LocalSyncQueueRepository();
+  SyncQueueManager({LocalSyncQueueRepository? queueRepository})
+    : queueRepository = queueRepository ?? LocalSyncQueueRepository();
 
   Future<void> enqueue(SyncQueueItem newItem) async {
     final existingItems = await queueRepository.getPendingItems();

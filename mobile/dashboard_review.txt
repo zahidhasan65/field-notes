@@ -1,0 +1,593 @@
+
+========== .\lib\features\home\screens\home_screen.dart ==========
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
+import '../bloc/home_state.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        title: const Text(
+          'Field Notes',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Refresh dashboard',
+            onPressed: () {
+              context.read<HomeBloc>().add(const HomeLoadRequested());
+            },
+            icon: const Icon(
+              Icons.refresh_rounded,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: BlocBuilder<HomeBloc, HomeState>(
+        builder: (context, state) {
+          if (state is HomeInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is HomeLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is HomeError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.cloud_off_rounded,
+                      size: 48,
+                      color: AppColors.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () {
+                        context.read<HomeBloc>().add(const HomeLoadRequested());
+                      },
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Try again'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (state is HomeLoaded) {
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<HomeBloc>().add(const HomeLoadRequested());
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                children: [
+                  const Text(
+                    'Dashboard',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Overview of your field activities',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Overview',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio: 1.35,
+                    children: [
+                      _SummaryCard(
+                        title: 'Customers',
+                        count: state.customers.length,
+                        icon: Icons.people_alt_outlined,
+                        color: AppColors.primary,
+                      ),
+                      _SummaryCard(
+                        title: 'Sites',
+                        count: state.sites.length,
+                        icon: Icons.location_on_outlined,
+                        color: AppColors.success,
+                      ),
+                      _SummaryCard(
+                        title: 'Field Notes',
+                        count: state.fieldNotes.length,
+                        icon: Icons.note_alt_outlined,
+                        color: AppColors.warning,
+                      ),
+                      _SummaryCard(
+                        title: 'Completed',
+                        count: state.completedCount,
+                        icon: Icons.check_circle_outline_rounded,
+                        color: AppColors.success,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'Recent Field Notes',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (state.fieldNotes.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(
+                            Icons.note_add_outlined,
+                            size: 42,
+                            color: AppColors.textTertiary,
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            'No field notes yet',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'Your field notes will appear here.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ...state.fieldNotes.reversed
+                        .take(5)
+                        .map(
+                          (note) => Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLight,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.description_outlined,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (note.title ?? '').trim().isEmpty
+                                            ? 'Untitled note'
+                                            : note.title!,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        (note.description ?? '').trim().isEmpty
+                                            ? 'No description'
+                                            : note.description!,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        (note.status ?? 'PENDING').replaceAll(
+                                          '_',
+                                          ' ',
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final String title;
+  final int count;
+  final IconData icon;
+  final Color color;
+
+  const _SummaryCard({
+    required this.title,
+    required this.count,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, color: color, size: 26),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$count',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+========== .\lib\features\home\bloc\home_bloc.dart ==========
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../data/repositories/local_customer_repository.dart';
+import '../../../data/repositories/local_site_repository.dart';
+import '../../../data/repositories/local_field_note_repository.dart';
+import 'home_event.dart';
+import 'home_state.dart';
+
+class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  final String userId;
+  final LocalCustomerRepository customerRepository;
+  final LocalSiteRepository siteRepository;
+  final LocalFieldNoteRepository fieldNoteRepository;
+
+  HomeBloc({
+    required this.userId,
+    LocalCustomerRepository? customerRepository,
+    LocalSiteRepository? siteRepository,
+    LocalFieldNoteRepository? fieldNoteRepository,
+  }) : customerRepository = customerRepository ?? LocalCustomerRepository(),
+       siteRepository = siteRepository ?? LocalSiteRepository(),
+       fieldNoteRepository = fieldNoteRepository ?? LocalFieldNoteRepository(),
+       super(const HomeInitial()) {
+    on<HomeLoadRequested>(_onLoadRequested);
+  }
+
+  Future<void> _onLoadRequested(
+    HomeLoadRequested event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(const HomeLoading());
+
+    try {
+      final customers = await customerRepository.getCustomers(userId);
+      final sites = <dynamic>[];
+      final fieldNotes = <dynamic>[];
+
+      for (final customer in customers) {
+        final customerSites = await siteRepository.getSites(customer.id);
+
+        sites.addAll(customerSites);
+
+        for (final site in customerSites) {
+          final notes = await fieldNoteRepository.getFieldNotes(site.id);
+          fieldNotes.addAll(notes);
+        }
+      }
+
+      emit(
+        HomeLoaded(
+          customers: customers,
+          sites: sites.cast(),
+          fieldNotes: fieldNotes.cast(),
+        ),
+      );
+    } catch (error) {
+      emit(HomeError('Unable to load dashboard data. Please try again.'));
+    }
+  }
+}
+
+
+========== .\lib\features\home\bloc\home_state.dart ==========
+import 'package:equatable/equatable.dart';
+
+import '../../../data/local/models/customer_local.dart';
+import '../../../data/local/models/site_local.dart';
+import '../../../data/local/models/field_note_local.dart';
+
+abstract class HomeState extends Equatable {
+  const HomeState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class HomeInitial extends HomeState {
+  const HomeInitial();
+}
+
+class HomeLoading extends HomeState {
+  const HomeLoading();
+}
+
+class HomeLoaded extends HomeState {
+  final List<CustomerLocal> customers;
+  final List<SiteLocal> sites;
+  final List<FieldNoteLocal> fieldNotes;
+
+  const HomeLoaded({
+    required this.customers,
+    required this.sites,
+    required this.fieldNotes,
+  });
+
+  int get pendingCount => fieldNotes
+      .where((note) => (note.status ?? '').toUpperCase() == 'PENDING')
+      .length;
+
+  int get inProgressCount => fieldNotes
+      .where((note) => (note.status ?? '').toUpperCase() == 'IN_PROGRESS')
+      .length;
+
+  int get completedCount => fieldNotes
+      .where((note) => (note.status ?? '').toUpperCase() == 'COMPLETED')
+      .length;
+
+  @override
+  List<Object?> get props => [customers, sites, fieldNotes];
+}
+
+class HomeError extends HomeState {
+  final String message;
+
+  const HomeError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+
+========== .\lib\features\home\bloc\home_event.dart ==========
+import 'package:equatable/equatable.dart';
+
+abstract class HomeEvent extends Equatable {
+  const HomeEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class HomeLoadRequested extends HomeEvent {
+  const HomeLoadRequested();
+}
+
+
+========== .\lib\core\theme\app_theme.dart ==========
+import 'package:flutter/material.dart';
+
+import 'app_colors.dart';
+import 'app_text_styles.dart';
+
+abstract final class AppTheme {
+  static ThemeData light() {
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: AppColors.primary,
+          onPrimary: Colors.white,
+          surface: AppColors.surface,
+          error: AppColors.error,
+        );
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: AppColors.background,
+
+      fontFamily: 'Inter',
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: AppTextStyles.title,
+      ),
+
+      cardTheme: CardThemeData(
+        color: AppColors.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.border),
+        ),
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        labelStyle: AppTextStyles.bodySecondary,
+        hintStyle: AppTextStyles.bodySecondary,
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          minimumSize: const Size.fromHeight(48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          minimumSize: const Size.fromHeight(48),
+          side: const BorderSide(color: AppColors.border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        indicatorColor: AppColors.primaryLight,
+        labelTextStyle: WidgetStatePropertyAll(AppTextStyles.caption),
+      ),
+
+      dividerTheme: const DividerThemeData(
+        color: AppColors.divider,
+        thickness: 1,
+      ),
+    );
+  }
+}
+

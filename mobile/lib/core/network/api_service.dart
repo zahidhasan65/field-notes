@@ -19,16 +19,10 @@ class ApiService {
     );
   }
 
-  Future<ApiResponse> get({
-    required String endpoint,
-    String? token,
-  }) async {
-    return _sendRequest(
-      method: 'GET',
-      endpoint: endpoint,
-      token: token,
-    );
+  Future<ApiResponse> get({required String endpoint, String? token}) async {
+    return _sendRequest(method: 'GET', endpoint: endpoint, token: token);
   }
+
   Future<ApiResponse> put({
     required String endpoint,
     Map<String, dynamic>? body,
@@ -42,15 +36,8 @@ class ApiService {
     );
   }
 
-  Future<ApiResponse> delete({
-    required String endpoint,
-    String? token,
-  }) async {
-    return _sendRequest(
-      method: 'DELETE',
-      endpoint: endpoint,
-      token: token,
-    );
+  Future<ApiResponse> delete({required String endpoint, String? token}) async {
+    return _sendRequest(method: 'DELETE', endpoint: endpoint, token: token);
   }
 
   Future<ApiResponse> _sendRequest({
@@ -93,15 +80,13 @@ class ApiService {
         }
       }
 
-      final isSuccess =
-          response.statusCode >= 200 && response.statusCode < 300;
+      final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
 
       return ApiResponse(
         isSuccess: isSuccess,
         statusCode: response.statusCode,
         data: responseData,
-        errorMessage:
-            isSuccess ? null : _extractErrorMessage(responseData),
+        errorMessage: isSuccess ? null : _extractErrorMessage(responseData),
       );
     } catch (e) {
       return ApiResponse(
@@ -124,4 +109,3 @@ class ApiService {
     return 'Something went wrong. Please try again.';
   }
 }
-

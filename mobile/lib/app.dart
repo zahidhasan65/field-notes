@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/network/api_service.dart';
@@ -36,7 +36,7 @@ class FieldNotesApp extends StatelessWidget {
               child: MaterialApp(
                 title: 'Field Notes',
                 debugShowCheckedModeBanner: false,
-                  theme: AppTheme.light(),
+                theme: AppTheme.light(),
                 home: const SplashScreen(),
               ),
             ),
@@ -46,4 +46,3 @@ class FieldNotesApp extends StatelessWidget {
     );
   }
 }
-

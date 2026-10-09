@@ -1,17 +1,12 @@
-﻿import '../local/data_sources/app_settings_local_data_source.dart';
+import '../local/data_sources/app_settings_local_data_source.dart';
 
 class AppSettingsRepository {
   final AppSettingsLocalDataSource localDataSource;
 
-  AppSettingsRepository({
-    AppSettingsLocalDataSource? localDataSource,
-  }) : localDataSource =
-            localDataSource ?? AppSettingsLocalDataSource();
+  AppSettingsRepository({AppSettingsLocalDataSource? localDataSource})
+    : localDataSource = localDataSource ?? AppSettingsLocalDataSource();
 
-  Future<void> saveSetting(
-    String key,
-    String value,
-  ) async {
+  Future<void> saveSetting(String key, String value) async {
     await localDataSource.saveSetting(key, value);
   }
 

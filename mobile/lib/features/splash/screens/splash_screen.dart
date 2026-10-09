@@ -28,19 +28,14 @@ class _SplashScreenState extends State<SplashScreen>
       duration: _splashDuration,
     )..forward();
 
-    _timer = Timer(
-      _splashDuration,
-      _openAuth,
-    );
+    _timer = Timer(_splashDuration, _openAuth);
   }
 
   void _openAuth() {
     if (!mounted) return;
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const AuthStatusScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const AuthStatusScreen()),
     );
   }
 
@@ -69,9 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
                   // BACKGROUND
                   // =========================================================
                   const Positioned.fill(
-                    child: ColoredBox(
-                      color: Color(0xFFF2FAFE),
-                    ),
+                    child: ColoredBox(color: Color(0xFFF2FAFE)),
                   ),
 
                   // =========================================================
@@ -144,9 +137,7 @@ class _SplashScreenState extends State<SplashScreen>
                     right: 0,
                     bottom: 0,
                     height: height * 0.145,
-                    child: CustomPaint(
-                      painter: _BottomWavePainter(),
-                    ),
+                    child: CustomPaint(painter: _BottomWavePainter()),
                   ),
 
                   // =========================================================
@@ -214,10 +205,7 @@ class _BottomWavePainter extends CustomPainter {
       ..lineTo(0, size.height)
       ..close();
 
-    canvas.drawPath(
-      path,
-      Paint()..color = Colors.white,
-    );
+    canvas.drawPath(path, Paint()..color = Colors.white);
   }
 
   @override

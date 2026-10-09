@@ -1,4 +1,4 @@
-﻿class SyncQueueItem {
+class SyncQueueItem {
   final int? id;
   final String entityType;
   final String entityId;

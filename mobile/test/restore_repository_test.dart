@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:mobile/core/storage/session_storage.dart';
@@ -10,8 +9,7 @@ import 'package:mobile/data/remote/restore_remote_data_source.dart';
 import 'package:mobile/data/repositories/restore_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class FakeRestoreRemoteDataSource
-    extends RestoreRemoteDataSource {
+class FakeRestoreRemoteDataSource extends RestoreRemoteDataSource {
   FakeRestoreRemoteDataSource({
     required this.customers,
     required this.sites,
@@ -28,16 +26,12 @@ class FakeRestoreRemoteDataSource
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getSites(
-    String customerId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getSites(String customerId) async {
     return sites[customerId] ?? [];
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getFieldNotes(
-    String siteId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getFieldNotes(String siteId) async {
     return fieldNotes[siteId] ?? [];
   }
 }
@@ -141,4 +135,3 @@ void main() {
     expect(queue, isEmpty);
   });
 }
-

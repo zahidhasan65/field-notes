@@ -1,4 +1,4 @@
-﻿class FieldNoteLocal {
+class FieldNoteLocal {
   final String id;
   final String siteId;
   final String? title;
