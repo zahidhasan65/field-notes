@@ -1,8 +1,8 @@
-import '../../../core/storage/session_storage.dart';
-import '../models/auth_response_model.dart';
-import '../models/auth_user_model.dart';
-import '../repositories/auth_repository.dart';
-import 'remote/auth_remote_data_source.dart';
+import 'package:mobile/core/storage/session_storage.dart';
+import 'package:mobile/features/auth/models/auth_response_model.dart';
+import 'package:mobile/features/auth/models/auth_user_model.dart';
+import 'package:mobile/features/auth/repositories/auth_repository.dart';
+import 'package:mobile/features/auth/data/remote/auth_remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;

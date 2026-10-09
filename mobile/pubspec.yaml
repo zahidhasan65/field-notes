@@ -35,6 +35,7 @@ dev_dependencies:
 flutter:
 
   uses-material-design: true
+
   assets:
     - assets/images/field_notes_app_logo_v2.png
     - assets/images/splash_landscape.png
