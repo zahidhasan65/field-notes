@@ -1,180 +1,95 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../../../core/constants/sync_constants.dart';
-import '../database/database_helper.dart';
-import '../models/site_local.dart';
-import '../models/sync_queue_item.dart';
+import '../../models/site_local.dart';
+import '../../models/views.dart';
+import 'sync_table_data_source.dart';
 
-class SiteLocalDataSource {
-  final DatabaseHelper databaseHelper;
+class SiteLocalDataSource extends SyncTableDataSource {
+  SiteLocalDataSource(super.helper);
 
-  SiteLocalDataSource({DatabaseHelper? databaseHelper})
-    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  @override
+  String get table => 'sites';
 
-  Future<void> insertSite(SiteLocal site) async {
-    final db = await databaseHelper.database;
+  Future<void> upsert(DatabaseExecutor ex, SiteLocal s) => upsertMap(ex, s.toMap());
 
-    await db.insert(
+  Future<SiteLocal?> getById(
+    String id, {
+    bool includeDeleted = false,
+    DatabaseExecutor? ex,
+  }) async {
+    final e = await executor(ex);
+    final rows = await e.query(
       'sites',
-      site.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<SiteLocal?> getSiteById(String id) async {
-    final db = await databaseHelper.database;
-
-    final result = await db.query(
-      'sites',
-      where: 'id = ? AND deleted_at IS NULL',
+      where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
       whereArgs: [id],
       limit: 1,
     );
+    return rows.isEmpty ? null : SiteLocal.fromMap(rows.first);
+  }
 
-    if (result.isEmpty) {
-      return null;
+  Future<List<String>> idsByCustomer(DatabaseExecutor ex, String customerId) async {
+    final rows = await ex.query('sites',
+        columns: ['id'],
+        where: 'customer_id = ? AND deleted_at IS NULL',
+        whereArgs: [customerId]);
+    return rows.map((r) => r['id'] as String).toList();
+  }
+
+  static const _selectView = '''
+    SELECT s.*, c.name AS customer_name,
+      (SELECT COUNT(*) FROM field_notes n
+        WHERE n.site_id = s.id AND n.deleted_at IS NULL) AS note_count
+    FROM sites s
+    JOIN customers c ON c.id = s.customer_id
+  ''';
+
+  SiteView _toView(Map<String, Object?> r) => SiteView(
+        SiteLocal.fromMap(r),
+        customerName: (r['customer_name'] as String?) ?? '',
+        noteCount: (r['note_count'] as int?) ?? 0,
+      );
+
+  Future<List<SiteView>> listViews(
+    String userId, {
+    String? customerId,
+    String query = '',
+  }) async {
+    final db = await helper.database;
+    final like = '%${query.trim()}%';
+    final args = <Object?>[userId];
+    final where = StringBuffer(
+        'c.user_id = ? AND s.deleted_at IS NULL AND c.deleted_at IS NULL');
+    if (customerId != null) {
+      where.write(' AND s.customer_id = ?');
+      args.add(customerId);
     }
+    where.write(
+        " AND (s.site_name LIKE ? OR c.name LIKE ? OR IFNULL(s.address, '') LIKE ?)");
+    args.addAll([like, like, like]);
 
-    return SiteLocal.fromMap(result.first);
-  }
-
-  Future<List<SiteLocal>> getSites(String customerId) async {
-    final db = await databaseHelper.database;
-
-    final result = await db.query(
-      'sites',
-      where: 'customer_id = ? AND deleted_at IS NULL',
-      whereArgs: [customerId],
-      orderBy: 'created_at DESC',
+    final rows = await db.rawQuery(
+      '$_selectView WHERE $where ORDER BY s.site_name COLLATE NOCASE',
+      args,
     );
-
-    return result.map(SiteLocal.fromMap).toList();
+    return rows.map(_toView).toList();
   }
 
-  Future<void> updateSite(SiteLocal site) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'sites',
-      site.toMap(),
-      where: 'id = ?',
-      whereArgs: [site.id],
+  Future<SiteView?> getView(String id) async {
+    final db = await helper.database;
+    final rows = await db.rawQuery(
+      '$_selectView WHERE s.id = ? AND s.deleted_at IS NULL',
+      [id],
     );
+    return rows.isEmpty ? null : _toView(rows.first);
   }
 
-  Future<void> markAsSynced(String id) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'sites',
-      {'sync_status': SyncStatus.synced},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> softDeleteSite(String id, String deletedAt) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'sites',
-      {'deleted_at': deletedAt},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> createSiteWithSyncQueue({
-    required SiteLocal site,
-    required SyncQueueItem queueItem,
-  }) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      await txn.insert(
-        'sites',
-        site.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-
-      await txn.insert(
-        'sync_queue',
-        queueItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
-  }
-
-  Future<void> updateSiteWithSyncQueue({
-    required SiteLocal site,
-    required SyncQueueItem queueItem,
-  }) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      await txn.update(
-        'sites',
-        site.toMap(),
-        where: 'id = ?',
-        whereArgs: [site.id],
-      );
-
-      await txn.insert(
-        'sync_queue',
-        queueItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
-  }
-
-  Future<void> softDeleteSiteWithSyncQueue({
-    required String id,
-    required String deletedAt,
-    required SyncQueueItem queueItem,
-  }) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      await txn.update(
-        'sites',
-        {
-          'deleted_at': deletedAt,
-          'sync_status': SyncStatus.pendingDelete,
-          'updated_at': deletedAt,
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-
-      await txn.insert(
-        'sync_queue',
-        queueItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
-  }
-
-  Future<void> markAsSyncFailed(String id) async {
-    final db = await databaseHelper.database;
-    await db.update(
-      'sites',
-      {'sync_status': SyncStatus.syncFailed},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> restoreSites(List<SiteLocal> sites) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      for (final site in sites) {
-        await txn.insert(
-          'sites',
-          site.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-    });
+  Future<int> count(String userId) async {
+    final db = await helper.database;
+    final rows = await db.rawQuery('''
+      SELECT COUNT(*) AS c FROM sites s
+      JOIN customers c ON c.id = s.customer_id
+      WHERE c.user_id = ? AND s.deleted_at IS NULL AND c.deleted_at IS NULL
+    ''', [userId]);
+    return (rows.first['c'] as int?) ?? 0;
   }
 }

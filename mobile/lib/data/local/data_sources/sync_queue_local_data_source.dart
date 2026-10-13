@@ -1,124 +1,210 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 
+import '../../../core/core.dart';
+import '../../models/sync_queue_item.dart';
 import '../database/database_helper.dart';
-import '../models/sync_queue_item.dart';
 
+/// The outbox: every offline change waits here until it reached the server.
+///
+/// Collapsing rules (one open item per entity):
+///   CREATE + UPDATE -> CREATE (latest data)
+///   CREATE + DELETE -> nothing (the server never saw it)
+///   UPDATE + UPDATE -> UPDATE
+///   UPDATE + DELETE -> DELETE
 class SyncQueueLocalDataSource {
-  final DatabaseHelper databaseHelper;
+  SyncQueueLocalDataSource(this.helper);
 
-  SyncQueueLocalDataSource({DatabaseHelper? databaseHelper})
-    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  final DatabaseHelper helper;
 
-  Future<void> addToQueue(SyncQueueItem item) async {
-    final db = await databaseHelper.database;
+  Future<DatabaseExecutor> _ex(DatabaseExecutor? ex) async =>
+      ex ?? await helper.database;
 
-    await db.insert(
+  /// Adds / merges a CREATE or UPDATE. Returns the operation that is now queued.
+  Future<String> enqueueUpsert(DatabaseExecutor ex, SyncQueueItem item) async {
+    final open = await ex.query(
       'sync_queue',
-      item.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<List<SyncQueueItem>> getPendingItems() async {
-    final db = await databaseHelper.database;
-
-    final result = await db.query(
-      'sync_queue',
-      where: 'status = ?',
-      whereArgs: ['PENDING'],
-      orderBy: 'created_at ASC, id ASC',
-    );
-
-    return result.map(SyncQueueItem.fromMap).toList();
-  }
-
-  Future<List<SyncQueueItem>> getPendingItemsByEntity(
-    String entityType,
-    String entityId,
-  ) async {
-    final db = await databaseHelper.database;
-
-    final result = await db.query(
-      'sync_queue',
-      where: 'entity_type = ? AND entity_id = ? AND status = ?',
-      whereArgs: [entityType, entityId, 'PENDING'],
-      orderBy: 'created_at ASC, id ASC',
-    );
-
-    return result.map(SyncQueueItem.fromMap).toList();
-  }
-
-  Future<void> markProcessing(int id) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'sync_queue',
-      {
-        'status': 'PROCESSING',
-        'last_attempt_at': DateTime.now().toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> markFailed(int id, {required String errorMessage}) async {
-    final db = await databaseHelper.database;
-
-    final result = await db.query(
-      'sync_queue',
-      columns: ['retry_count'],
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'entity_type = ? AND entity_id = ? AND status != ?',
+      whereArgs: [item.entityType, item.entityId, SyncQueueStatus.processing],
+      orderBy: 'id ASC',
       limit: 1,
     );
 
-    if (result.isEmpty) {
-      return;
+    if (open.isEmpty) {
+      await ex.insert('sync_queue', item.toMap());
+      return item.operation;
     }
 
-    final currentRetryCount = (result.first['retry_count'] as int?) ?? 0;
+    final existing = SyncQueueItem.fromMap(open.first);
+    final effective = existing.operation == SyncOperation.create
+        ? SyncOperation.create
+        : item.operation;
 
-    await db.update(
+    await ex.update(
       'sync_queue',
       {
-        'status': 'FAILED',
-        'retry_count': currentRetryCount + 1,
-        'last_attempt_at': DateTime.now().toIso8601String(),
-        'error_message': errorMessage,
+        'operation': effective,
+        'payload': _mergePayload(existing.payload, item.payload),
+        'status': SyncQueueStatus.pending,
+        'retry_count': 0,
+        'error_message': null,
       },
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [existing.id],
+    );
+    return effective;
+  }
+
+  /// Replaces open items of the entity with one DELETE.
+  Future<void> enqueueDelete(DatabaseExecutor ex, SyncQueueItem item) async {
+    await ex.delete(
+      'sync_queue',
+      where: 'entity_type = ? AND entity_id = ? AND status != ?',
+      whereArgs: [item.entityType, item.entityId, SyncQueueStatus.processing],
+    );
+    await ex.insert('sync_queue', item.toMap());
+  }
+
+  Future<bool> hasPendingCreate(
+      DatabaseExecutor ex, String entityType, String entityId) async {
+    final rows = await ex.query(
+      'sync_queue',
+      columns: ['id'],
+      where: 'entity_type = ? AND entity_id = ? AND operation = ?',
+      whereArgs: [entityType, entityId, SyncOperation.create],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
+  Future<void> removeForEntities(
+      DatabaseExecutor ex, String entityType, List<String> ids) async {
+    if (ids.isEmpty) return;
+    final marks = List.filled(ids.length, '?').join(',');
+    await ex.delete(
+      'sync_queue',
+      where: 'entity_type = ? AND entity_id IN ($marks)',
+      whereArgs: [entityType, ...ids],
     );
   }
 
-  Future<void> markPending(int id) async {
-    final db = await databaseHelper.database;
+  /// Items to send now: pending ones + failed ones that can still be retried.
+  Future<List<SyncQueueItem>> getRunnable(String userId) async {
+    final db = await helper.database;
+    final rows = await db.query(
+      'sync_queue',
+      where: 'user_id = ? AND (status = ? OR (status = ? AND retry_count < ?))',
+      whereArgs: [
+        userId,
+        SyncQueueStatus.pending,
+        SyncQueueStatus.failed,
+        SyncLimits.maxRetries,
+      ],
+      orderBy: 'id ASC',
+    );
+    return rows.map(SyncQueueItem.fromMap).toList();
+  }
 
+  Future<void> markProcessing(int id) async {
+    final db = await helper.database;
     await db.update(
       'sync_queue',
-      {'status': 'PENDING', 'error_message': null},
+      {'status': SyncQueueStatus.processing, 'last_attempt_at': nowIso()},
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  Future<void> removeFromQueue(int id) async {
-    final db = await databaseHelper.database;
-
-    await db.delete('sync_queue', where: 'id = ?', whereArgs: [id]);
+  /// Back to PENDING without counting a retry (offline / session problems).
+  Future<void> markPendingAgain(int id) async {
+    final db = await helper.database;
+    await db.update('sync_queue', {'status': SyncQueueStatus.pending},
+        where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<void> removeEntityOperations(
-    String entityType,
-    String entityId,
-  ) async {
-    final db = await databaseHelper.database;
+  Future<void> markFailed(int id, String message) async {
+    final db = await helper.database;
+    await db.rawUpdate(
+      'UPDATE sync_queue SET status = ?, retry_count = retry_count + 1, '
+      'error_message = ?, last_attempt_at = ? WHERE id = ?',
+      [SyncQueueStatus.failed, message, nowIso(), id],
+    );
+  }
 
-    await db.delete(
+  Future<void> remove(DatabaseExecutor ex, int id) async {
+    await ex.delete('sync_queue', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// true when something else is still waiting for this entity.
+  Future<bool> hasOpenItems(
+      DatabaseExecutor ex, String entityType, String entityId) async {
+    final rows = await ex.query(
       'sync_queue',
+      columns: ['id'],
       where: 'entity_type = ? AND entity_id = ?',
       whereArgs: [entityType, entityId],
+      limit: 1,
     );
+    return rows.isNotEmpty;
+  }
+
+  /// FAILED -> PENDING (user pressed retry).
+  Future<void> resetFailed(String userId) async {
+    final db = await helper.database;
+    await db.update(
+      'sync_queue',
+      {'status': SyncQueueStatus.pending, 'retry_count': 0, 'error_message': null},
+      where: 'user_id = ? AND status = ?',
+      whereArgs: [userId, SyncQueueStatus.failed],
+    );
+  }
+
+  /// After a crash some items can be stuck in PROCESSING.
+  Future<void> resetStuckProcessing(String userId) async {
+    final db = await helper.database;
+    await db.update(
+      'sync_queue',
+      {'status': SyncQueueStatus.pending},
+      where: 'user_id = ? AND status = ?',
+      whereArgs: [userId, SyncQueueStatus.processing],
+    );
+  }
+
+  Future<int> pendingCount(String userId) async {
+    final db = await helper.database;
+    final rows = await db.rawQuery(
+      'SELECT COUNT(*) AS c FROM sync_queue WHERE user_id = ? AND status != ?',
+      [userId, SyncQueueStatus.failed],
+    );
+    return (rows.first['c'] as int?) ?? 0;
+  }
+
+  Future<int> failedCount(String userId) async {
+    final db = await helper.database;
+    final rows = await db.rawQuery(
+      'SELECT COUNT(*) AS c FROM sync_queue WHERE user_id = ? AND status = ?',
+      [userId, SyncQueueStatus.failed],
+    );
+    return (rows.first['c'] as int?) ?? 0;
+  }
+
+  /// Keeps photo instructions ("photoPath" / "removePhoto") of an older queued
+  /// change when the newer payload does not mention the photo.
+  String _mergePayload(String oldJson, String newJson) {
+    try {
+      final oldMap = jsonDecode(oldJson) as Map<String, dynamic>;
+      final newMap = jsonDecode(newJson) as Map<String, dynamic>;
+      final newHasPhotoInfo =
+          newMap.containsKey('photoPath') || newMap.containsKey('removePhoto');
+      if (!newHasPhotoInfo) {
+        for (final key in ['photoPath', 'removePhoto']) {
+          if (oldMap.containsKey(key)) newMap[key] = oldMap[key];
+        }
+      }
+      return jsonEncode(newMap);
+    } catch (_) {
+      return newJson;
+    }
   }
 }

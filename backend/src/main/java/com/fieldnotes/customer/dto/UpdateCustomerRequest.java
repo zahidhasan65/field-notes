@@ -9,6 +9,18 @@ public record UpdateCustomerRequest(
     String name,
 
     @Size(max = 255)
-    String contactInformation
+    String contactInformation,
+
+    @Size(max = 150)
+    String contactPerson,
+
+    @Size(max = 255)
+    String email,
+
+    @Size(max = 50)
+    String phone,
+
+    @Size(max = 255)
+    String address
 ) {
 }

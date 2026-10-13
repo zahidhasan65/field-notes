@@ -7,7 +7,12 @@ public record CustomerResponse(
     UUID id,
     String name,
     String contactInformation,
+    String contactPerson,
+    String email,
+    String phone,
+    String address,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    Instant deletedAt
 ) {
 }

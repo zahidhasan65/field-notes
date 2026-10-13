@@ -3,6 +3,7 @@ package com.fieldnotes.user.service;
 import com.fieldnotes.auth.service.JwtService;
 import com.fieldnotes.exception.DuplicateResourceException;
 import com.fieldnotes.exception.InvalidCredentialsException;
+import com.fieldnotes.user.dto.GoogleLoginRequest;
 import com.fieldnotes.user.dto.LoginRequest;
 import com.fieldnotes.user.dto.LoginResponse;
 import com.fieldnotes.user.dto.RegisterRequest;
@@ -12,21 +13,26 @@ import com.fieldnotes.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final GoogleAuthService googleAuthService;
 
     public UserService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        JwtService jwtService
+        JwtService jwtService,
+        GoogleAuthService googleAuthService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.googleAuthService = googleAuthService;
     }
 
     public boolean emailExists(String email) {
@@ -89,7 +95,33 @@ public class UserService {
 
         return new LoginResponse(token, "Bearer", userResponse);
     }
+
+    /**
+     * "Continue with Google": verifies the Google ID token, then logs the user in.
+     * First time = an account is created (random password, the user signs in with Google).
+     */
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+        GoogleAuthService.GoogleProfile profile =
+            googleAuthService.verify(request.idToken());
+
+        String email = profile.email().trim().toLowerCase();
+
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
+            .orElseGet(() -> userRepository.save(new User(
+                profile.name().trim(),
+                email,
+                passwordEncoder.encode(UUID.randomUUID() + UUID.randomUUID().toString())
+            )));
+
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
+
+        UserResponse userResponse = new UserResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getCreatedAt()
+        );
+
+        return new LoginResponse(token, "Bearer", userResponse);
+    }
 }
-
-
-

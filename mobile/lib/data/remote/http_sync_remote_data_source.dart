@@ -1,172 +1,147 @@
 import 'dart:convert';
 
-import '../../core/constants/sync_constants.dart';
-import '../../core/network/api_service.dart';
-import '../../core/storage/session_storage.dart';
-import '../local/models/sync_queue_item.dart';
+import '../../core/core.dart';
+import '../models/sync_queue_item.dart';
 import 'sync_remote_data_source.dart';
 
 class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
+  HttpSyncRemoteDataSource({
+    required this.apiService,
+    required this.sessionStorage,
+  });
+
   final ApiService apiService;
   final SessionStorage sessionStorage;
 
-  HttpSyncRemoteDataSource({
-    ApiService? apiService,
-    SessionStorage? sessionStorage,
-  }) : apiService = apiService ?? ApiService(),
-       sessionStorage = sessionStorage ?? SessionStorage();
-
-  @override
-  Future<void> create(SyncQueueItem item) async {
-    await _send(item, SyncOperation.create);
-  }
-
-  @override
-  Future<void> update(SyncQueueItem item) async {
-    await _send(item, SyncOperation.update);
-  }
-
-  @override
-  Future<void> delete(SyncQueueItem item) async {
-    await _send(item, SyncOperation.delete);
-  }
-
-  Future<void> _send(SyncQueueItem item, String operation) async {
+  Future<String> _token() async {
     final token = await sessionStorage.getToken();
-
-    if (token == null || token.isEmpty) {
-      throw StateError('Authentication token is not available.');
-    }
-
-    final payload = jsonDecode(item.payload) as Map<String, dynamic>;
-
-    final request = _buildRequest(
-      item: item,
-      operation: operation,
-      payload: payload,
-    );
-
-    final response = switch (operation) {
-      SyncOperation.create => await apiService.post(
-        endpoint: request.endpoint,
-        body: request.body,
-        token: token,
-      ),
-      SyncOperation.update => await apiService.put(
-        endpoint: request.endpoint,
-        body: request.body,
-        token: token,
-      ),
-      SyncOperation.delete => await apiService.delete(
-        endpoint: request.endpoint,
-        token: token,
-      ),
-      _ => throw UnsupportedError('Unsupported sync operation: $operation'),
-    };
-
-    if (!response.isSuccess) {
-      throw Exception(
-        'Sync failed (${response.statusCode}): '
-        '${response.errorMessage ?? 'Unknown error'}',
-      );
-    }
+    if (token == null || token.isEmpty) throw const AuthExpiredException();
+    return token;
   }
 
-  _SyncRequest _buildRequest({
-    required SyncQueueItem item,
-    required String operation,
-    required Map<String, dynamic> payload,
-  }) {
+  void _check(ApiResponse r, {bool okOn404 = false}) {
+    if (r.isSuccess) return;
+    if (r.isNetworkError) throw const NetworkException();
+    if (r.statusCode == 401 || r.statusCode == 403) {
+      throw const AuthExpiredException();
+    }
+    if (okOn404 && r.statusCode == 404) return;
+    throw ApiException(r.statusCode, r.errorMessage ?? 'Request failed');
+  }
+
+  Map<String, dynamic> _body(Map<String, dynamic> payload) =>
+      {...payload}..remove('photoPath')..remove('removePhoto');
+
+  @override
+  Future<void> push(SyncQueueItem item) async {
+    final token = await _token();
+    final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+    final id = item.entityId;
+    final op = item.operation;
+
+    late ApiResponse r;
+
     switch (item.entityType) {
       case SyncEntityType.customer:
-        return _buildCustomerRequest(item, operation, payload);
-
+        if (op == SyncOperation.create) {
+          r = await apiService.post(
+              endpoint: ApiConstants.customers(), body: _body(payload), token: token);
+        } else if (op == SyncOperation.update) {
+          r = await apiService.put(
+              endpoint: ApiConstants.customer(id), body: _body(payload), token: token);
+        } else {
+          r = await apiService.delete(endpoint: ApiConstants.customer(id), token: token);
+        }
       case SyncEntityType.site:
-        return _buildSiteRequest(item, operation, payload);
-
+        final customerId = payload['customerId'] as String;
+        if (op == SyncOperation.create) {
+          r = await apiService.post(
+              endpoint: ApiConstants.sites(customerId), body: _body(payload), token: token);
+        } else if (op == SyncOperation.update) {
+          r = await apiService.put(
+              endpoint: ApiConstants.site(customerId, id),
+              body: _body(payload),
+              token: token);
+        } else {
+          r = await apiService.delete(
+              endpoint: ApiConstants.site(customerId, id), token: token);
+        }
       case SyncEntityType.fieldNote:
-        return _buildFieldNoteRequest(item, operation, payload);
-
+        final siteId = payload['siteId'] as String;
+        if (op == SyncOperation.create) {
+          r = await apiService.post(
+              endpoint: ApiConstants.notes(siteId), body: _body(payload), token: token);
+        } else if (op == SyncOperation.update) {
+          r = await apiService.put(
+              endpoint: ApiConstants.note(siteId, id), body: _body(payload), token: token);
+        } else {
+          r = await apiService.delete(
+              endpoint: ApiConstants.note(siteId, id), token: token);
+        }
       default:
-        throw UnsupportedError('Unsupported entity type: ${item.entityType}');
+        throw ApiException(0, 'Unknown entity type ${item.entityType}');
     }
+
+    // Deleting something the server no longer has is fine.
+    _check(r, okOn404: op == SyncOperation.delete);
   }
 
-  _SyncRequest _buildCustomerRequest(
-    SyncQueueItem item,
-    String operation,
-    Map<String, dynamic> payload,
-  ) {
-    final body = {
-      'name': payload['name'],
-      'contactInformation': payload['contactInformation'],
-    };
+  @override
+  Future<String?> uploadPhoto(String noteId, String filePath) async {
+    final token = await _token();
+    final r = await apiService.postFile(
+      endpoint: ApiConstants.notePhoto(noteId),
+      filePath: filePath,
+      token: token,
+    );
+    _check(r);
+    final data = r.data;
+    return data is Map<String, dynamic> ? data['photoUrl'] as String? : null;
+  }
 
-    return _SyncRequest(
-      endpoint: operation == SyncOperation.create
-          ? '/customers'
-          : '/customers/${item.entityId}',
-      body: operation == SyncOperation.delete ? null : body,
+  @override
+  Future<void> deletePhoto(String noteId) async {
+    final token = await _token();
+    final r = await apiService.delete(
+        endpoint: ApiConstants.notePhoto(noteId), token: token);
+    _check(r, okOn404: true);
+  }
+
+  @override
+  Future<RemoteChanges> fetchChanges({DateTime? since}) async {
+    final token = await _token();
+    final query = since == null
+        ? ''
+        : '?since=${Uri.encodeQueryComponent(since.toUtc().toIso8601String())}';
+    final r = await apiService.get(
+        endpoint: '${ApiConstants.syncChanges}$query', token: token);
+    _check(r);
+
+    final data = r.data;
+    if (data is! Map<String, dynamic>) {
+      throw const ApiException(500, 'Unexpected response from the server.');
+    }
+
+    List<Map<String, dynamic>> list(String key) => ((data[key] as List?) ?? [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+
+    return RemoteChanges(
+      serverTime:
+          DateTime.tryParse((data['serverTime'] ?? '').toString()) ?? DateTime.now().toUtc(),
+      customers: list('customers'),
+      sites: list('sites'),
+      notes: list('fieldNotes'),
     );
   }
 
-  _SyncRequest _buildSiteRequest(
-    SyncQueueItem item,
-    String operation,
-    Map<String, dynamic> payload,
-  ) {
-    final customerId = payload['customerId'];
-
-    if (customerId == null || customerId.toString().isEmpty) {
-      throw StateError('customerId is required to sync site ${item.entityId}.');
-    }
-
-    final baseEndpoint = '/customers/$customerId/sites';
-
-    final body = {'name': payload['siteName'], 'address': payload['address']};
-
-    return _SyncRequest(
-      endpoint: operation == SyncOperation.create
-          ? baseEndpoint
-          : '$baseEndpoint/${item.entityId}',
-      body: operation == SyncOperation.delete ? null : body,
-    );
+  @override
+  Future<List<int>?> downloadPhoto(String noteId) async {
+    final token = await _token();
+    final result = await apiService.getBytes(
+        endpoint: ApiConstants.notePhoto(noteId), token: token);
+    if (result.response.statusCode == 404) return null;
+    _check(result.response);
+    return result.bytes;
   }
-
-  _SyncRequest _buildFieldNoteRequest(
-    SyncQueueItem item,
-    String operation,
-    Map<String, dynamic> payload,
-  ) {
-    final siteId = payload['siteId'];
-
-    if (siteId == null || siteId.toString().isEmpty) {
-      throw StateError(
-        'siteId is required to sync field note ${item.entityId}.',
-      );
-    }
-
-    final baseEndpoint = '/sites/$siteId/field-notes';
-
-    final note = payload['note'] ?? payload['description'] ?? payload['title'];
-
-    if (operation != SyncOperation.delete &&
-        (note == null || note.toString().trim().isEmpty)) {
-      throw StateError('note is required to sync field note ${item.entityId}.');
-    }
-
-    return _SyncRequest(
-      endpoint: operation == SyncOperation.create
-          ? baseEndpoint
-          : '$baseEndpoint/${item.entityId}',
-      body: operation == SyncOperation.delete ? null : {'note': note},
-    );
-  }
-}
-
-class _SyncRequest {
-  final String endpoint;
-  final Map<String, dynamic>? body;
-
-  const _SyncRequest({required this.endpoint, required this.body});
 }

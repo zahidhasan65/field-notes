@@ -4,6 +4,8 @@ import com.fieldnotes.common.response.ApiError;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -49,6 +51,45 @@ public class GlobalExceptionHandler {
         return buildError(
             HttpStatus.CONFLICT,
             exception.getMessage(),
+            request.getRequestURI(),
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgument(
+        IllegalArgumentException exception,
+        HttpServletRequest request
+    ) {
+        return buildError(
+            HttpStatus.BAD_REQUEST,
+            exception.getMessage(),
+            request.getRequestURI(),
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadable(
+        HttpMessageNotReadableException exception,
+        HttpServletRequest request
+    ) {
+        return buildError(
+            HttpStatus.BAD_REQUEST,
+            "Malformed request body",
+            request.getRequestURI(),
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleTooLarge(
+        MaxUploadSizeExceededException exception,
+        HttpServletRequest request
+    ) {
+        return buildError(
+            HttpStatus.PAYLOAD_TOO_LARGE,
+            "File is too large (max 10 MB)",
             request.getRequestURI(),
             Map.of()
         );

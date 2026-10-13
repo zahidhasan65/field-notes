@@ -1,35 +1,28 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// SQLite database (offline-first storage).
+///
+/// Relationships: users 1-N customers 1-N sites 1-N field_notes.
+/// Customer / site names are never copied into notes: they are read with JOINs.
 class DatabaseHelper {
-  static final DatabaseHelper instance = DatabaseHelper._internal();
-
-  static Database? _database;
-
   DatabaseHelper._internal();
 
-  Future<Database> get database async {
-    if (_database != null) {
-      return _database!;
-    }
+  static final DatabaseHelper instance = DatabaseHelper._internal();
 
-    _database = await _initDatabase();
-    return _database!;
-  }
+  static const int _version = 2;
+  static Database? _database;
 
-  Future<Database> _initDatabase() async {
-    final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'field_notes.db');
+  Future<Database> get database async => _database ??= await _open();
 
-    return await openDatabase(
+  Future<Database> _open() async {
+    final path = join(await getDatabasesPath(), 'field_notes.db');
+    return openDatabase(
       path,
-      version: 1,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: (db, version) async {
-        await _createTables(db);
-      },
+      version: _version,
+      onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
+      onCreate: (db, version) => _createTables(db),
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -38,10 +31,8 @@ class DatabaseHelper {
       CREATE TABLE users (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        deleted_at TEXT
+        email TEXT NOT NULL,
+        updated_at TEXT NOT NULL
       )
     ''');
 
@@ -50,7 +41,10 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
         name TEXT NOT NULL,
-        contact_information TEXT,
+        contact_person TEXT,
+        email TEXT,
+        phone TEXT,
+        address TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         deleted_at TEXT,
@@ -64,7 +58,9 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         customer_id TEXT NOT NULL,
         site_name TEXT NOT NULL,
-        address TEXT NOT NULL,
+        address TEXT,
+        latitude REAL,
+        longitude REAL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         deleted_at TEXT,
@@ -77,13 +73,14 @@ class DatabaseHelper {
       CREATE TABLE field_notes (
         id TEXT PRIMARY KEY,
         site_id TEXT NOT NULL,
-        title TEXT,
+        title TEXT NOT NULL,
         description TEXT,
+        status TEXT NOT NULL DEFAULT 'PENDING',
+        note_datetime TEXT NOT NULL,
         latitude REAL,
         longitude REAL,
-        note_datetime TEXT,
-        status TEXT,
         photo_url TEXT,
+        photo_path TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         deleted_at TEXT,
@@ -95,6 +92,7 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE sync_queue (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
         entity_type TEXT NOT NULL,
         entity_id TEXT NOT NULL,
         operation TEXT NOT NULL,
@@ -110,8 +108,41 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE app_settings (
         key TEXT PRIMARY KEY,
-        value TEXT
+        value TEXT NOT NULL
       )
     ''');
+
+    await db.execute('CREATE INDEX idx_customers_user ON customers(user_id)');
+    await db.execute('CREATE INDEX idx_sites_customer ON sites(customer_id)');
+    await db.execute('CREATE INDEX idx_notes_site ON field_notes(site_id)');
+    await db.execute('CREATE INDEX idx_notes_date ON field_notes(note_datetime)');
+    await db.execute('CREATE INDEX idx_queue_user ON sync_queue(user_id, status)');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE customers ADD COLUMN contact_person TEXT');
+      await db.execute('ALTER TABLE customers ADD COLUMN email TEXT');
+      await db.execute('ALTER TABLE customers ADD COLUMN phone TEXT');
+      await db.execute('ALTER TABLE customers ADD COLUMN address TEXT');
+      await db.execute('ALTER TABLE sites ADD COLUMN latitude REAL');
+      await db.execute('ALTER TABLE sites ADD COLUMN longitude REAL');
+      await db.execute('ALTER TABLE field_notes ADD COLUMN photo_path TEXT');
+      await db.execute(
+        "ALTER TABLE sync_queue ADD COLUMN user_id TEXT NOT NULL DEFAULT ''",
+      );
+    }
+  }
+
+  /// Removes all rows (used by tests and "clear local data").
+  Future<void> wipeEverything() async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('field_notes');
+      await txn.delete('sites');
+      await txn.delete('customers');
+      await txn.delete('sync_queue');
+      await txn.delete('app_settings');
+    });
   }
 }

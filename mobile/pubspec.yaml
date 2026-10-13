@@ -1,5 +1,5 @@
 name: mobile
-description: "A new Flutter project."
+description: "Field Notes - offline-first field notes app (Flutter + BLoC + SQLite)."
 
 publish_to: 'none'
 
@@ -8,25 +8,32 @@ version: 1.0.0+1
 environment:
   sdk: ^3.10.4
 
-
 dependencies:
   flutter:
     sdk: flutter
-
 
   cupertino_icons: ^1.0.8
   flutter_bloc: ^9.1.1
   equatable: ^3.0.0
   http: ^1.6.0
+  http_parser: ^4.1.2
   shared_preferences: ^2.5.5
   sqflite: ^2.4.2
   path: ^1.9.1
   connectivity_plus: ^7.3.2
 
+  # new: camera / gallery / location / local photo storage
+  image_picker: ^1.1.2
+  geolocator: ^13.0.2
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.5
+
+  # Continue with Google
+  google_sign_in: ^6.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
   flutter_lints: ^6.0.0
   sqflite_common_ffi: ^2.4.0+3
@@ -39,4 +46,3 @@ flutter:
   assets:
     - assets/images/field_notes_app_logo_v2.png
     - assets/images/splash_landscape.png
-

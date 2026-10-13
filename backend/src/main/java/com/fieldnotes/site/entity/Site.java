@@ -9,6 +9,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "sites")
 public class Site extends BaseEntity {
@@ -23,38 +25,39 @@ public class Site extends BaseEntity {
     @Column(length = 255)
     private String address;
 
+    private Double latitude;
+
+    private Double longitude;
+
     protected Site() {
         super();
     }
 
     public Site(
+        UUID id,
         Customer customer,
         String name,
-        String address
+        String address,
+        Double latitude,
+        Double longitude
     ) {
-        super();
+        super(id != null ? id : UUID.randomUUID());
         this.customer = customer;
         this.name = name;
         this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    public Customer getCustomer() {
-        return customer;
-    }
+    public Customer getCustomer() { return customer; }
+    public String getName() { return name; }
+    public String getAddress() { return address; }
+    public Double getLatitude() { return latitude; }
+    public Double getLongitude() { return longitude; }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public void setCustomer(Customer customer) { this.customer = customer; }
+    public void setName(String name) { this.name = name; }
+    public void setAddress(String address) { this.address = address; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }

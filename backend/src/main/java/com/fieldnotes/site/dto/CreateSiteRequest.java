@@ -3,12 +3,21 @@ package com.fieldnotes.site.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
+/** "id" is an optional client generated id (idempotent create). */
 public record CreateSiteRequest(
+    UUID id,
+
     @NotBlank
     @Size(max = 150)
     String name,
 
     @Size(max = 255)
-    String address
+    String address,
+
+    Double latitude,
+
+    Double longitude
 ) {
 }

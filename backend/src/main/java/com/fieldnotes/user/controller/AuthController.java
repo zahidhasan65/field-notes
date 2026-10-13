@@ -4,6 +4,12 @@ import com.fieldnotes.user.dto.LoginRequest;
 import com.fieldnotes.user.dto.LoginResponse;
 import com.fieldnotes.user.dto.RegisterRequest;
 import com.fieldnotes.user.dto.UserResponse;
+import com.fieldnotes.user.dto.ForgotPasswordRequest;
+import com.fieldnotes.user.dto.ForgotPasswordResponse;
+import com.fieldnotes.user.dto.GoogleLoginRequest;
+import com.fieldnotes.user.dto.MessageResponse;
+import com.fieldnotes.user.dto.ResetPasswordRequest;
+import com.fieldnotes.user.service.PasswordResetService;
 import com.fieldnotes.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,9 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(UserService userService) {
+    public AuthController(
+        UserService userService,
+        PasswordResetService passwordResetService
+    ) {
         this.userService = userService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -42,5 +53,29 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-}
 
+    /** Step 1 of "forgot password": creates an OTP (demo mode returns it in the response). */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(
+        @Valid @RequestBody ForgotPasswordRequest request
+    ) {
+        return ResponseEntity.ok(passwordResetService.requestOtp(request.email()));
+    }
+
+    /** Step 2: checks the OTP and sets the new password. */
+    @PostMapping("/reset-password")
+    public ResponseEntity<MessageResponse> resetPassword(
+        @Valid @RequestBody ResetPasswordRequest request
+    ) {
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok(new MessageResponse("Password updated. You can log in now."));
+    }
+
+    /** "Continue with Google": body = { "idToken": "..." }. */
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> google(
+        @Valid @RequestBody GoogleLoginRequest request
+    ) {
+        return ResponseEntity.ok(userService.loginWithGoogle(request));
+    }
+}

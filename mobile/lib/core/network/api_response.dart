@@ -10,4 +10,7 @@ class ApiResponse {
     this.data,
     this.errorMessage,
   });
+
+  /// statusCode 0 means the request never reached the server.
+  bool get isNetworkError => statusCode == 0;
 }

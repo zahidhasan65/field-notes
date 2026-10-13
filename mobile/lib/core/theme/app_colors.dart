@@ -1,28 +1,26 @@
 import 'package:flutter/material.dart';
 
-abstract final class AppColors {
-  static const primary = Color(0xFF2563EB);
-  static const primaryDark = Color(0xFF1D4ED8);
-  static const primaryLight = Color(0xFFEFF6FF);
+class AppColors {
+  AppColors._();
 
-  static const success = Color(0xFF16A34A);
-  static const successLight = Color(0xFFECFDF3);
+  static const primary = Color(0xFF1E6BE6);
+  static const primaryDark = Color(0xFF1250B8);
+  static const bg = Color(0xFFF4F7FC);
+  static const border = Color(0xFFE6EBF3);
+  static const text = Color(0xFF0F172A);
+  static const muted = Color(0xFF64748B);
+  static const green = Color(0xFF16A36A);
+  static const orange = Color(0xFFF59E0B);
+  static const red = Color(0xFFE5484D);
 
-  static const warning = Color(0xFFD97706);
-  static const warningLight = Color(0xFFFFF7ED);
-
-  static const error = Color(0xFFDC2626);
-  static const errorLight = Color(0xFFFEF2F2);
-
-  static const background = Color(0xFFF8FAFC);
-  static const surface = Color(0xFFFFFFFF);
-
-  static const textPrimary = Color(0xFF0F172A);
-  static const textSecondary = Color(0xFF64748B);
-  static const textTertiary = Color(0xFF94A3B8);
-
-  static const border = Color(0xFFE2E8F0);
-  static const divider = Color(0xFFF1F5F9);
-
-  static const offline = Color(0xFF64748B);
+  static const headerGradient = LinearGradient(
+    colors: [Color(0xFF2B7BFF), primaryDark],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  static const brandGradient = LinearGradient(
+    colors: [primary, green],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }

@@ -34,6 +34,11 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-fieldnotes}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      DEV_OTP_ENABLED: ${DEV_OTP_ENABLED:-true}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - field_notes_uploads:/app/uploads
     ports:
       - "8080:8080"
     networks:
@@ -41,6 +46,7 @@ services:
 
 volumes:
   field_notes_postgres_data:
+  field_notes_uploads:
 
 networks:
   field-notes-network:

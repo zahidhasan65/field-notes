@@ -1,180 +1,89 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../../../core/constants/sync_constants.dart';
-import '../database/database_helper.dart';
-import '../models/customer_local.dart';
-import '../models/sync_queue_item.dart';
+import '../../models/customer_local.dart';
+import '../../models/views.dart';
+import 'sync_table_data_source.dart';
 
-class CustomerLocalDataSource {
-  final DatabaseHelper databaseHelper;
+class CustomerLocalDataSource extends SyncTableDataSource {
+  CustomerLocalDataSource(super.helper);
 
-  CustomerLocalDataSource({DatabaseHelper? databaseHelper})
-    : databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  @override
+  String get table => 'customers';
 
-  Future<void> insertCustomer(CustomerLocal customer) async {
-    final db = await databaseHelper.database;
+  Future<void> upsert(DatabaseExecutor ex, CustomerLocal c) =>
+      upsertMap(ex, c.toMap());
 
-    await db.insert(
+  Future<CustomerLocal?> getById(
+    String id, {
+    bool includeDeleted = false,
+    DatabaseExecutor? ex,
+  }) async {
+    final e = await executor(ex);
+    final rows = await e.query(
       'customers',
-      customer.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<CustomerLocal?> getCustomerById(String id) async {
-    final db = await databaseHelper.database;
-
-    final result = await db.query(
-      'customers',
-      where: 'id = ? AND deleted_at IS NULL',
+      where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
       whereArgs: [id],
       limit: 1,
     );
-
-    if (result.isEmpty) {
-      return null;
-    }
-
-    return CustomerLocal.fromMap(result.first);
+    return rows.isEmpty ? null : CustomerLocal.fromMap(rows.first);
   }
 
-  Future<List<CustomerLocal>> getCustomers(String userId) async {
-    final db = await databaseHelper.database;
+  /// Customers with number of sites / notes (sub-queries, no duplicated data).
+  Future<List<CustomerView>> listViews(String userId, {String query = ''}) async {
+    final db = await helper.database;
+    final like = '%${query.trim()}%';
+    final rows = await db.rawQuery('''
+      SELECT c.*,
+        (SELECT COUNT(*) FROM sites s
+          WHERE s.customer_id = c.id AND s.deleted_at IS NULL) AS site_count,
+        (SELECT COUNT(*) FROM field_notes n
+          JOIN sites s2 ON s2.id = n.site_id
+          WHERE s2.customer_id = c.id AND s2.deleted_at IS NULL
+            AND n.deleted_at IS NULL) AS note_count
+      FROM customers c
+      WHERE c.user_id = ? AND c.deleted_at IS NULL
+        AND (c.name LIKE ? OR IFNULL(c.contact_person, '') LIKE ?
+             OR IFNULL(c.email, '') LIKE ? OR IFNULL(c.phone, '') LIKE ?)
+      ORDER BY c.name COLLATE NOCASE
+    ''', [userId, like, like, like, like]);
 
-    final result = await db.query(
-      'customers',
-      where: 'user_id = ? AND deleted_at IS NULL',
-      whereArgs: [userId],
-      orderBy: 'created_at DESC',
-    );
-
-    return result.map(CustomerLocal.fromMap).toList();
+    return rows
+        .map((r) => CustomerView(
+              CustomerLocal.fromMap(r),
+              siteCount: (r['site_count'] as int?) ?? 0,
+              noteCount: (r['note_count'] as int?) ?? 0,
+            ))
+        .toList();
   }
 
-  Future<void> updateCustomer(CustomerLocal customer) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'customers',
-      customer.toMap(),
-      where: 'id = ?',
-      whereArgs: [customer.id],
-    );
-  }
-
-  Future<void> markAsSynced(String id) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'customers',
-      {'sync_status': SyncStatus.synced},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> softDeleteCustomer(String id, String deletedAt) async {
-    final db = await databaseHelper.database;
-
-    await db.update(
-      'customers',
-      {'deleted_at': deletedAt},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> createCustomerWithSyncQueue({
-    required CustomerLocal customer,
-    required SyncQueueItem queueItem,
-  }) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      await txn.insert(
-        'customers',
-        customer.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-
-      await txn.insert(
-        'sync_queue',
-        queueItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
-  }
-
-  Future<void> updateCustomerWithSyncQueue({
-    required CustomerLocal customer,
-    required SyncQueueItem queueItem,
-  }) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      await txn.update(
-        'customers',
-        customer.toMap(),
-        where: 'id = ?',
-        whereArgs: [customer.id],
-      );
-
-      await txn.insert(
-        'sync_queue',
-        queueItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
-  }
-
-  Future<void> softDeleteCustomerWithSyncQueue({
-    required String id,
-    required String deletedAt,
-    required SyncQueueItem queueItem,
-  }) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      await txn.update(
-        'customers',
-        {
-          'deleted_at': deletedAt,
-          'sync_status': SyncStatus.pendingDelete,
-          'updated_at': deletedAt,
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-
-      await txn.insert(
-        'sync_queue',
-        queueItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
-  }
-
-  Future<void> markAsSyncFailed(String id) async {
-    final db = await databaseHelper.database;
-    await db.update(
-      'customers',
-      {'sync_status': SyncStatus.syncFailed},
-      where: 'id = ?',
-      whereArgs: [id],
+  Future<CustomerView?> getView(String id) async {
+    final db = await helper.database;
+    final rows = await db.rawQuery('''
+      SELECT c.*,
+        (SELECT COUNT(*) FROM sites s
+          WHERE s.customer_id = c.id AND s.deleted_at IS NULL) AS site_count,
+        (SELECT COUNT(*) FROM field_notes n
+          JOIN sites s2 ON s2.id = n.site_id
+          WHERE s2.customer_id = c.id AND s2.deleted_at IS NULL
+            AND n.deleted_at IS NULL) AS note_count
+      FROM customers c
+      WHERE c.id = ? AND c.deleted_at IS NULL
+    ''', [id]);
+    if (rows.isEmpty) return null;
+    final r = rows.first;
+    return CustomerView(
+      CustomerLocal.fromMap(r),
+      siteCount: (r['site_count'] as int?) ?? 0,
+      noteCount: (r['note_count'] as int?) ?? 0,
     );
   }
 
-  Future<void> restoreCustomers(List<CustomerLocal> customers) async {
-    final db = await databaseHelper.database;
-
-    await db.transaction((txn) async {
-      for (final customer in customers) {
-        await txn.insert(
-          'customers',
-          customer.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-    });
+  Future<int> count(String userId) async {
+    final db = await helper.database;
+    final rows = await db.rawQuery(
+      'SELECT COUNT(*) AS c FROM customers WHERE user_id = ? AND deleted_at IS NULL',
+      [userId],
+    );
+    return (rows.first['c'] as int?) ?? 0;
   }
 }

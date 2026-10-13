@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'app.dart';
+import 'app/app.dart';
+import 'app/app_dependencies.dart';
 
-void main() {
-  runApp(const FieldNotesApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(FieldNotesApp(deps: AppDependencies()));
 }

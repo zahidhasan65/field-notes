@@ -1,96 +1,213 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../data/repositories/restore_repository.dart';
-import '../repositories/auth_repository.dart';
-import 'auth_event.dart';
-import 'auth_state.dart';
+import '../../../core/core.dart';
+import '../../../services/google_auth_service.dart';
+import '../data/auth_repository.dart';
+import '../models/auth_user_model.dart';
 
+// ---------------- events ----------------
+sealed class AuthEvent extends Equatable {
+  const AuthEvent();
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthStarted extends AuthEvent {
+  const AuthStarted();
+}
+
+class AuthLoginRequested extends AuthEvent {
+  final String email;
+  final String password;
+  const AuthLoginRequested({required this.email, required this.password});
+  @override
+  List<Object?> get props => [email, password];
+}
+
+class AuthRegisterRequested extends AuthEvent {
+  final String name;
+  final String email;
+  final String password;
+  const AuthRegisterRequested({
+    required this.name,
+    required this.email,
+    required this.password,
+  });
+  @override
+  List<Object?> get props => [name, email, password];
+}
+
+/// "Continue with Google" button.
+class AuthGoogleLoginRequested extends AuthEvent {
+  const AuthGoogleLoginRequested();
+}
+
+class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}
+
+/// The server rejected our token (401) while syncing.
+class AuthSessionExpired extends AuthEvent {
+  const AuthSessionExpired();
+}
+
+// ---------------- states ----------------
+sealed class AuthState extends Equatable {
+  const AuthState();
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
+
+class AuthLoading extends AuthState {
+  const AuthLoading();
+}
+
+class AuthAuthenticated extends AuthState {
+  final AuthUserModel user;
+  /// true on a fresh install / cleared data: download the user's data first.
+  final bool needsRestore;
+  const AuthAuthenticated({required this.user, required this.needsRestore});
+  @override
+  List<Object?> get props => [user.id, user.name, user.email, needsRestore];
+}
+
+class AuthUnauthenticated extends AuthState {
+  final String? message;
+  const AuthUnauthenticated({this.message});
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthFailure extends AuthState {
+  final String message;
+  const AuthFailure(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+// ---------------- bloc ----------------
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRepository authRepository;
-  final RestoreRepository restoreRepository;
-
-  AuthBloc({required this.authRepository, RestoreRepository? restoreRepository})
-    : restoreRepository = restoreRepository ?? RestoreRepository(),
-      super(const AuthInitial()) {
-    on<AuthStarted>(_onAuthStarted);
-    on<AuthLoginRequested>(_onAuthLoginRequested);
-    on<AuthRegisterRequested>(_onAuthRegisterRequested);
-    on<AuthLogoutRequested>(_onAuthLogoutRequested);
+  AuthBloc({
+    required this.repository,
+    required this.connectivity,
+    required this.google,
+  }) : super(const AuthInitial()) {
+    on<AuthStarted>(_onStarted);
+    on<AuthLoginRequested>(_onLogin);
+    on<AuthRegisterRequested>(_onRegister);
+    on<AuthGoogleLoginRequested>(_onGoogleLogin);
+    on<AuthLogoutRequested>(_onLogout);
+    on<AuthSessionExpired>(_onSessionExpired);
   }
 
-  Future<void> _onAuthStarted(
-    AuthStarted event,
-    Emitter<AuthState> emit,
-  ) async {
+  final AuthRepository repository;
+  final ConnectivityService connectivity;
+  final GoogleAuthService google;
+
+  static const _offlineLogin =
+      'Internet connection required to log in. Please connect and try again.';
+  static const _offlineRegister =
+      'Internet connection required to create an account. Please connect and try again.';
+
+  Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
+    final user = await repository.currentUser();
+    if (user == null) {
+      emit(const AuthUnauthenticated());
+      return;
+    }
+    emit(AuthAuthenticated(
+      user: user,
+      needsRestore: await repository.needsRestore(user.id),
+    ));
+  }
+
+  Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
-
+    if (!await connectivity.isOnline()) {
+      emit(const AuthFailure(_offlineLogin));
+      return;
+    }
     try {
-      final user = await authRepository.checkAuthentication();
-
-      if (user != null) {
-        await restoreRepository.restore();
-        emit(AuthAuthenticated(user));
-      } else {
-        emit(const AuthUnauthenticated());
-      }
-    } catch (e) {
-      emit(AuthError(e.toString()));
+      final user = await repository.login(email: event.email, password: event.password);
+      emit(AuthAuthenticated(
+        user: user,
+        needsRestore: await repository.needsRestore(user.id),
+      ));
+    } on ApiException catch (e) {
+      emit(AuthFailure(e.statusCode == 401 ? 'Invalid email or password.' : e.message));
+    } catch (_) {
+      emit(const AuthFailure('Login failed. Please try again.'));
     }
   }
 
-  Future<void> _onAuthLoginRequested(
-    AuthLoginRequested event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onRegister(AuthRegisterRequested event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
-
-    try {
-      final user = await authRepository.login(
-        email: event.email,
-        password: event.password,
-      );
-
-      await restoreRepository.restore();
-
-      emit(AuthAuthenticated(user));
-    } catch (e) {
-      emit(AuthError(e.toString()));
+    if (!await connectivity.isOnline()) {
+      emit(const AuthFailure(_offlineRegister));
+      return;
     }
-  }
-
-  Future<void> _onAuthRegisterRequested(
-    AuthRegisterRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(const AuthLoading());
-
     try {
-      final user = await authRepository.register(
+      final user = await repository.register(
         name: event.name,
         email: event.email,
         password: event.password,
       );
-
-      await restoreRepository.restore();
-
-      emit(AuthAuthenticated(user));
-    } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthAuthenticated(user: user, needsRestore: false));
+    } on ApiException catch (e) {
+      emit(AuthFailure(e.message));
+    } catch (_) {
+      emit(const AuthFailure('Registration failed. Please try again.'));
     }
   }
 
-  Future<void> _onAuthLogoutRequested(
-    AuthLogoutRequested event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onGoogleLogin(
+      AuthGoogleLoginRequested event, Emitter<AuthState> emit) async {
+    if (!google.isConfigured) {
+      emit(const AuthFailure(
+          'Google sign-in is not configured yet. Run the app with GOOGLE_SERVER_CLIENT_ID (see GOOGLE_SETUP.md).'));
+      return;
+    }
+
     emit(const AuthLoading());
+    if (!await connectivity.isOnline()) {
+      emit(const AuthFailure(_offlineLogin));
+      return;
+    }
 
     try {
-      await authRepository.logout();
-
-      emit(const AuthUnauthenticated());
-    } catch (e) {
-      emit(AuthError(e.toString()));
+      final idToken = await google.signInAndGetIdToken();
+      if (idToken == null) {
+        emit(const AuthUnauthenticated()); // the user closed the account picker
+        return;
+      }
+      final user = await repository.loginWithGoogle(idToken);
+      emit(AuthAuthenticated(
+        user: user,
+        needsRestore: await repository.needsRestore(user.id),
+      ));
+    } on ApiException catch (e) {
+      emit(AuthFailure(e.message));
+    } on PlatformException catch (e) {
+      emit(AuthFailure(google.friendlyError(e)));
+    } catch (_) {
+      emit(const AuthFailure('Google sign-in failed. Please try again.'));
     }
+  }
+
+  Future<void> _onLogout(AuthLogoutRequested event, Emitter<AuthState> emit) async {
+    await repository.logout();
+    await google.signOut();
+    emit(const AuthUnauthenticated());
+  }
+
+  Future<void> _onSessionExpired(AuthSessionExpired event, Emitter<AuthState> emit) async {
+    await repository.logout();
+    emit(const AuthUnauthenticated(message: 'Your session expired. Please log in again.'));
   }
 }

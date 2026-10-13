@@ -8,7 +8,10 @@ public record SiteResponse(
     UUID customerId,
     String name,
     String address,
+    Double latitude,
+    Double longitude,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    Instant deletedAt
 ) {
 }
