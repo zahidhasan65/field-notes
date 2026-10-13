@@ -7,7 +7,6 @@ import '../core/core.dart';
 import '../features/sync/bloc/sync_bloc.dart';
 import 'app_button.dart';
 
-/// Bottom sheet with the real sync details and "Sync now".
 void showSyncSheet(BuildContext context) {
   final bloc = context.read<SyncBloc>();
   showModalBottomSheet(

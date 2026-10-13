@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Fade + slide-up entrance. Use [index] to stagger items in a list.
 class AnimatedEntrance extends StatefulWidget {
   final Widget child;
   final int index;

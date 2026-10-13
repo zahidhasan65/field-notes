@@ -26,7 +26,6 @@ enum RestoreStatus { running, success, failure }
 class RestoreState extends Equatable {
   final RestoreStatus status;
 
-  /// Stages already finished -> number of records found.
   final Map<RestoreStage, int> done;
   final String? error;
 
@@ -72,7 +71,7 @@ class RestoreBloc extends Bloc<RestoreEvent, RestoreState> {
     try {
       await engine.restore(userId, onStage: (stage, count) async {
         emit(state.copyWith(done: {...state.done, stage: count}));
-        // short pause so the user can see each step
+
         await Future.delayed(const Duration(milliseconds: 350));
       });
       emit(state.copyWith(status: RestoreStatus.success));

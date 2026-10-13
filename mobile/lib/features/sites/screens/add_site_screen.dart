@@ -8,7 +8,6 @@ import '../../../services/location_service.dart';
 import '../../../widgets/widgets.dart';
 import '../bloc/site_form_bloc.dart';
 
-/// Add a site, or edit one when [site] is given. [customer] pre-selects the customer.
 class AddSiteScreen extends StatefulWidget {
   final SiteLocal? site;
   final CustomerLocal? customer;

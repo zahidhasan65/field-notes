@@ -6,7 +6,6 @@ import '../../../data/data.dart';
 import '../../../widgets/widgets.dart';
 import '../bloc/customer_form_bloc.dart';
 
-/// Add a customer, or edit one when [customer] is given.
 class AddCustomerScreen extends StatefulWidget {
   final CustomerLocal? customer;
   const AddCustomerScreen({super.key, this.customer});

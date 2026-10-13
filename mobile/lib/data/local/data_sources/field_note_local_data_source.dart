@@ -39,7 +39,6 @@ class FieldNoteLocalDataSource extends SyncTableDataSource {
     return rows.map((r) => r['id'] as String).toList();
   }
 
-  /// Photo files of the given notes (to delete them from disk).
   Future<List<String>> photoPathsByIds(DatabaseExecutor ex, List<String> ids) async {
     if (ids.isEmpty) return [];
     final marks = List.filled(ids.length, '?').join(',');
@@ -73,7 +72,6 @@ class FieldNoteLocalDataSource extends SyncTableDataSource {
         where: 'id = ?', whereArgs: [id]);
   }
 
-  /// Notes that have a remote photo but no local copy yet.
   Future<List<FieldNoteLocal>> missingPhotos(String userId) async {
     final db = await helper.database;
     final rows = await db.rawQuery('''
@@ -101,8 +99,7 @@ class FieldNoteLocalDataSource extends SyncTableDataSource {
         customerName: (r['customer_name'] as String?) ?? '',
       );
 
-  /// Search by title, description, site or customer + filter by status / site.
-  /// All done with JOINs on the local database.
+
   Future<List<NoteView>> search(
     String userId, {
     String query = '',

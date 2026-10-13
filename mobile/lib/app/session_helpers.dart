@@ -8,7 +8,6 @@ import '../features/auth/bloc/auth_bloc.dart';
 import '../features/auth/models/auth_user_model.dart';
 import '../features/sync/bloc/sync_bloc.dart';
 
-/// The logged in user (screens after login can rely on it).
 AuthUserModel? currentUserOf(BuildContext context) {
   final state = context.read<AuthBloc>().state;
   return state is AuthAuthenticated ? state.user : null;
@@ -16,7 +15,6 @@ AuthUserModel? currentUserOf(BuildContext context) {
 
 String currentUserId(BuildContext context) => currentUserOf(context)?.id ?? '';
 
-/// Pull-to-refresh: runs a real sync and waits for it. Offline -> short message.
 Future<void> refreshWithSync(BuildContext context) async {
   final bloc = context.read<SyncBloc>();
   if (!bloc.state.isOnline) {

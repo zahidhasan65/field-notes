@@ -6,8 +6,7 @@ import '../widgets/permission_dialogs.dart';
 
 enum AppPermission { camera, location }
 
-/// Real runtime permissions (camera, location) with a proper "denied forever"
-/// flow that sends the user to the system settings.
+
 class PermissionService {
   Permission _map(AppPermission p) => switch (p) {
         AppPermission.camera => Permission.camera,
@@ -24,7 +23,6 @@ class PermissionService {
         AppPermission.location => Icons.location_on,
       };
 
-  /// true when the permission is granted. Shows the right message otherwise.
   Future<bool> ensure(BuildContext context, AppPermission p) async {
     final permission = _map(p);
 

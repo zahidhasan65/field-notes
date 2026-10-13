@@ -10,8 +10,7 @@ import '../../sync/bloc/sync_bloc.dart';
 import '../bloc/home_bloc.dart';
 import 'home_tab.dart';
 
-/// Bottom-navigation shell: Notes (home) | Customers | Settings.
-/// Starts the background sync for the logged in user.
+
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 

@@ -16,7 +16,6 @@ import '../services/permission_service.dart';
 import '../services/photo_service.dart';
 import '../services/photo_storage.dart';
 
-/// Builds every long-lived object once (simple manual dependency injection).
 class AppDependencies {
   AppDependencies() {
     final helper = DatabaseHelper.instance;

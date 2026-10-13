@@ -17,7 +17,6 @@ class LocationService {
 
   final PermissionService _permissions;
 
-  /// Current GPS position, or null (a message was already shown).
   Future<GeoPoint?> getCurrent(BuildContext context) async {
     if (!await Geolocator.isLocationServiceEnabled()) {
       if (context.mounted) {

@@ -6,13 +6,12 @@ import '../../../core/core.dart';
 import '../../models/sync_queue_item.dart';
 import '../database/database_helper.dart';
 
-/// The outbox: every offline change waits here until it reached the server.
-///
-/// Collapsing rules (one open item per entity):
-///   CREATE + UPDATE -> CREATE (latest data)
-///   CREATE + DELETE -> nothing (the server never saw it)
-///   UPDATE + UPDATE -> UPDATE
-///   UPDATE + DELETE -> DELETE
+
+
+
+
+
+
 class SyncQueueLocalDataSource {
   SyncQueueLocalDataSource(this.helper);
 
@@ -21,7 +20,6 @@ class SyncQueueLocalDataSource {
   Future<DatabaseExecutor> _ex(DatabaseExecutor? ex) async =>
       ex ?? await helper.database;
 
-  /// Adds / merges a CREATE or UPDATE. Returns the operation that is now queued.
   Future<String> enqueueUpsert(DatabaseExecutor ex, SyncQueueItem item) async {
     final open = await ex.query(
       'sync_queue',
@@ -56,7 +54,6 @@ class SyncQueueLocalDataSource {
     return effective;
   }
 
-  /// Replaces open items of the entity with one DELETE.
   Future<void> enqueueDelete(DatabaseExecutor ex, SyncQueueItem item) async {
     await ex.delete(
       'sync_queue',
@@ -89,7 +86,6 @@ class SyncQueueLocalDataSource {
     );
   }
 
-  /// Items to send now: pending ones + failed ones that can still be retried.
   Future<List<SyncQueueItem>> getRunnable(String userId) async {
     final db = await helper.database;
     final rows = await db.query(
@@ -116,7 +112,6 @@ class SyncQueueLocalDataSource {
     );
   }
 
-  /// Back to PENDING without counting a retry (offline / session problems).
   Future<void> markPendingAgain(int id) async {
     final db = await helper.database;
     await db.update('sync_queue', {'status': SyncQueueStatus.pending},
@@ -136,7 +131,6 @@ class SyncQueueLocalDataSource {
     await ex.delete('sync_queue', where: 'id = ?', whereArgs: [id]);
   }
 
-  /// true when something else is still waiting for this entity.
   Future<bool> hasOpenItems(
       DatabaseExecutor ex, String entityType, String entityId) async {
     final rows = await ex.query(
@@ -149,7 +143,6 @@ class SyncQueueLocalDataSource {
     return rows.isNotEmpty;
   }
 
-  /// FAILED -> PENDING (user pressed retry).
   Future<void> resetFailed(String userId) async {
     final db = await helper.database;
     await db.update(
@@ -160,7 +153,6 @@ class SyncQueueLocalDataSource {
     );
   }
 
-  /// After a crash some items can be stuck in PROCESSING.
   Future<void> resetStuckProcessing(String userId) async {
     final db = await helper.database;
     await db.update(
@@ -189,8 +181,7 @@ class SyncQueueLocalDataSource {
     return (rows.first['c'] as int?) ?? 0;
   }
 
-  /// Keeps photo instructions ("photoPath" / "removePhoto") of an older queued
-  /// change when the newer payload does not mention the photo.
+
   String _mergePayload(String oldJson, String newJson) {
     try {
       final oldMap = jsonDecode(oldJson) as Map<String, dynamic>;

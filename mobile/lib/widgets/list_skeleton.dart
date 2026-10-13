@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/core.dart';
 
-/// Pulsing placeholder cards shown while a list is loading.
 class ListSkeleton extends StatefulWidget {
   final int count;
   const ListSkeleton({super.key, this.count = 4});

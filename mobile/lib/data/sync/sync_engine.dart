@@ -33,11 +33,10 @@ class SyncResult {
 
 enum RestoreStage { customers, sites, notes, photos }
 
-/// Two-way sync:
-///   PUSH  - send queued offline changes (customers -> sites -> notes, deletes last)
-///   PULL  - download what changed on the server since the last pull
-/// Conflict rule: a row with local, not yet pushed changes is never overwritten
-/// by the pull (local wins until it was pushed).
+
+
+
+
 class SyncEngine {
   SyncEngine({
     required this.helper,
@@ -59,9 +58,8 @@ class SyncEngine {
   final AppSettingsRepository settings;
   final PhotoStorage photos;
 
-  // ------------------------------------------------------------------
-  // normal sync
-  // ------------------------------------------------------------------
+
+
   Future<SyncResult> sync(String userId) async {
     var pushed = 0;
     var failed = 0;
@@ -121,11 +119,10 @@ class SyncEngine {
     }
   }
 
-  // ------------------------------------------------------------------
-  // restore (first login on a fresh install / after "clear local data")
-  // ------------------------------------------------------------------
-  /// Downloads everything of the user in ONE request and stores it locally.
-  /// [onStage] is called after each stage so the UI can show progress.
+
+
+
+
   Future<void> restore(
     String userId, {
     Future<void> Function(RestoreStage stage, int count)? onStage,
@@ -150,9 +147,8 @@ class SyncEngine {
     DataEvents.notify();
   }
 
-  // ------------------------------------------------------------------
-  // push helpers
-  // ------------------------------------------------------------------
+
+
   int _priority(String type) => switch (type) {
         SyncEntityType.customer => 0,
         SyncEntityType.site => 1,
@@ -167,7 +163,6 @@ class SyncEngine {
     return byKey != 0 ? byKey : (a.id ?? 0).compareTo(b.id ?? 0);
   }
 
-  /// A site/note whose parent failed to sync cannot succeed yet.
   bool _dependsOnFailed(SyncQueueItem item, Set<String> failedIds) {
     if (failedIds.isEmpty || item.operation == SyncOperation.delete) return false;
     try {
@@ -226,9 +221,8 @@ class SyncEngine {
         .setSyncStatus(item.entityId, SyncStatus.syncFailed);
   }
 
-  // ------------------------------------------------------------------
-  // pull helpers
-  // ------------------------------------------------------------------
+
+
   Future<int> _applyCustomers(String userId, List<Map<String, dynamic>> list) async {
     final db = await helper.database;
     var applied = 0;
@@ -314,7 +308,6 @@ class SyncEngine {
     return applied;
   }
 
-  /// Downloads photos that exist on the server but not on this device.
   Future<int> _downloadPhotos(String userId) async {
     final missing = await notes.missingPhotos(userId);
     var downloaded = 0;
@@ -330,7 +323,7 @@ class SyncEngine {
       } on AuthExpiredException {
         rethrow;
       } catch (_) {
-        // one broken photo must not stop the sync; it is retried next time
+
       }
     }
     return downloaded;

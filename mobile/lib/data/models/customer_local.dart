@@ -79,7 +79,6 @@ class CustomerLocal {
         syncStatus: (m['sync_status'] as String?) ?? SyncStatus.synced,
       );
 
-  /// Server JSON -> local row (always "synced").
   factory CustomerLocal.fromServer(Map<String, dynamic> j, String userId) =>
       CustomerLocal(
         id: j['id'].toString(),
@@ -94,7 +93,6 @@ class CustomerLocal {
         syncStatus: SyncStatus.synced,
       );
 
-  /// Body sent to POST/PUT /customers.
   Map<String, dynamic> toApiPayload() => {
         'id': id,
         'name': name,

@@ -7,7 +7,6 @@ import '../../../services/google_auth_service.dart';
 import '../data/auth_repository.dart';
 import '../models/auth_user_model.dart';
 
-// ---------------- events ----------------
 sealed class AuthEvent extends Equatable {
   const AuthEvent();
   @override
@@ -39,7 +38,6 @@ class AuthRegisterRequested extends AuthEvent {
   List<Object?> get props => [name, email, password];
 }
 
-/// "Continue with Google" button.
 class AuthGoogleLoginRequested extends AuthEvent {
   const AuthGoogleLoginRequested();
 }
@@ -48,12 +46,10 @@ class AuthLogoutRequested extends AuthEvent {
   const AuthLogoutRequested();
 }
 
-/// The server rejected our token (401) while syncing.
 class AuthSessionExpired extends AuthEvent {
   const AuthSessionExpired();
 }
 
-// ---------------- states ----------------
 sealed class AuthState extends Equatable {
   const AuthState();
   @override
@@ -70,7 +66,7 @@ class AuthLoading extends AuthState {
 
 class AuthAuthenticated extends AuthState {
   final AuthUserModel user;
-  /// true on a fresh install / cleared data: download the user's data first.
+
   final bool needsRestore;
   const AuthAuthenticated({required this.user, required this.needsRestore});
   @override
@@ -91,7 +87,6 @@ class AuthFailure extends AuthState {
   List<Object?> get props => [message];
 }
 
-// ---------------- bloc ----------------
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required this.repository,

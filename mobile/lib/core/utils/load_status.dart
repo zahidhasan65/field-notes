@@ -4,7 +4,6 @@ enum LoadStatus { loading, loaded, failure }
 
 enum SubmitStatus { idle, saving, success, failure }
 
-/// State shared by the add/edit form BLoCs.
 class SubmitState extends Equatable {
   final SubmitStatus status;
   final String? error;

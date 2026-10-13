@@ -31,12 +31,11 @@ class AuthRepository {
   }) async {
     final response = await remote.register(name: name, email: email, password: password);
     await _saveSession(response.token, response.user);
-    // a brand new account has nothing on the server to restore
+
     await settings.setRestoreDone(response.user.id);
     return response.user;
   }
 
-  /// "Continue with Google": the backend verifies the ID token and returns our JWT.
   Future<AuthUserModel> loginWithGoogle(String idToken) async {
     final response = await remote.loginWithGoogle(idToken: idToken);
     await _saveSession(response.token, response.user);
@@ -63,7 +62,6 @@ class AuthRepository {
     await users.upsert(id: user.id, name: user.name, email: user.email);
   }
 
-  /// Reads the stored session. Works offline.
   Future<AuthUserModel?> currentUser() async {
     if (!await session.hasSession()) return null;
     final user = await session.getUser();
@@ -75,6 +73,5 @@ class AuthRepository {
 
   Future<bool> needsRestore(String userId) async => !(await settings.isRestoreDone(userId));
 
-  /// Local data stays on the device (offline-first); only the session is removed.
   Future<void> logout() => session.clearSession();
 }

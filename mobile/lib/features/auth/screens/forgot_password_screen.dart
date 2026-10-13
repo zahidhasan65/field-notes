@@ -6,9 +6,8 @@ import '../../../core/core.dart';
 import '../../../widgets/widgets.dart';
 import '../bloc/forgot_password_bloc.dart';
 
-/// Forgot password in two steps on one screen:
-///   1) e-mail -> "Send OTP"  (demo: the OTP is shown in a snackbar)
-///   2) OTP + new password -> "Reset password"
+
+
 class ForgotPasswordScreen extends StatefulWidget {
   final String? initialEmail;
   const ForgotPasswordScreen({super.key, this.initialEmail});

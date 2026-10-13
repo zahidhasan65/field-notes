@@ -1,6 +1,7 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/core.dart';
@@ -215,7 +216,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncBlocState> {
         pendingCount: await queue.pendingCount(userId),
         failedCount: await queue.failedCount(userId),
       ));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('SYNC ERROR: $e\n$st');
       emit(state.copyWith(isSyncing: false));
     } finally {
       _busy = false;

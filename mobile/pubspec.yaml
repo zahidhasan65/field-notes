@@ -30,6 +30,7 @@ dependencies:
 
   # Continue with Google
   google_sign_in: ^6.3.0
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:

@@ -28,7 +28,6 @@ class PhotoPlaceholder extends StatelessWidget {
   }
 }
 
-/// The note's photo (local file) or a placeholder when there is none.
 class NotePhoto extends StatelessWidget {
   final String? path;
   final int seed;

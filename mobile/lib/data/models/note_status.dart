@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/core.dart';
 
-/// Values match the backend enum (PENDING / IN_PROGRESS / COMPLETED).
 enum NoteStatus { pending, inProgress, completed }
 
 extension NoteStatusX on NoteStatus {

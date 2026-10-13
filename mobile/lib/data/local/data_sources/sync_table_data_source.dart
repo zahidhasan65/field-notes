@@ -2,7 +2,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../database/database_helper.dart';
 
-/// Shared helpers for the three synced tables (customers / sites / field_notes).
 abstract class SyncTableDataSource {
   SyncTableDataSource(this.helper);
 
@@ -39,7 +38,6 @@ abstract class SyncTableDataSource {
         where: 'id = ?', whereArgs: [id]);
   }
 
-  /// Soft deletes rows (they stay in the table so FKs keep working).
   Future<void> softDeleteMany(
     DatabaseExecutor ex,
     List<String> ids,
@@ -55,7 +53,6 @@ abstract class SyncTableDataSource {
     );
   }
 
-  /// Insert or update without REPLACE (REPLACE would break foreign keys).
   Future<void> upsertMap(DatabaseExecutor ex, Map<String, Object?> map) async {
     final id = map['id'];
     final updated = await ex.update(table, map, where: 'id = ?', whereArgs: [id]);

@@ -1,7 +1,6 @@
 import '../local/data_sources/app_settings_local_data_source.dart';
 import '../models/note_status.dart';
 
-/// Small key/value settings. "Default Note Status" lives only on the device.
 class AppSettingsRepository {
   AppSettingsRepository(this.local);
 
@@ -15,7 +14,6 @@ class AppSettingsRepository {
   Future<void> setDefaultNoteStatus(NoteStatus status) =>
       local.set(_defaultStatusKey, status.apiValue);
 
-  // ---- per user sync bookkeeping ----
   Future<bool> isRestoreDone(String userId) async =>
       (await local.get('restore_done:$userId')) == '1';
 

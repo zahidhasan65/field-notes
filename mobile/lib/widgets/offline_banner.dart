@@ -5,7 +5,6 @@ import '../core/core.dart';
 import '../data/data.dart';
 import '../features/sync/bloc/sync_bloc.dart';
 
-/// Shown on the main screens when the device is offline or a sync failed.
 class OfflineBanner extends StatelessWidget {
   const OfflineBanner({super.key});
 

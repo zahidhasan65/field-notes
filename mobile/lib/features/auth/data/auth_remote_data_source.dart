@@ -11,7 +11,6 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
-  /// Sends the Google ID token to the backend, which verifies it.
   Future<AuthResponseModel> loginWithGoogle({required String idToken});
 
   Future<PasswordResetResult> requestPasswordReset({required String email});

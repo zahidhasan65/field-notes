@@ -3,7 +3,6 @@ const _months = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
-/// Formats a DateTime in the device's local time, e.g. "25 Aug 2026, 10:30 AM".
 String fmtDate(DateTime d) {
   final l = d.toLocal();
   final h = l.hour % 12 == 0 ? 12 : l.hour % 12;

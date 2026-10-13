@@ -5,8 +5,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../core/core.dart';
 
-/// Keeps note photos in the app's documents folder so they survive restarts and
-/// can still be uploaded later when the connection returns.
+
 class PhotoStorage {
   Future<Directory> _dir() async {
     final base = await getApplicationDocumentsDirectory();
@@ -17,7 +16,6 @@ class PhotoStorage {
     return dir;
   }
 
-  /// Copies a picked file (usually in a temp/cache folder) into permanent storage.
   Future<String> copyIn(String sourcePath) async {
     final dir = await _dir();
     var ext = p.extension(sourcePath).toLowerCase();
@@ -40,7 +38,7 @@ class PhotoStorage {
       final f = File(path);
       if (await f.exists()) await f.delete();
     } catch (_) {
-      // best effort
+
     }
   }
 

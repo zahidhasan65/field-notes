@@ -130,7 +130,6 @@ class SiteRepository {
     DataEvents.notify();
   }
 
-  /// Deletes the site with its notes.
   Future<void> delete(String userId, SiteLocal s) async {
     final now = nowIso();
     final db = await helper.database;

@@ -80,8 +80,7 @@ class NotesState extends Equatable {
       ];
 }
 
-/// Field notes with search (title / description / site / customer) and
-/// filters (status / site). Everything is queried with SQL JOINs.
+
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   NotesBloc({
     required this.notesRepository,

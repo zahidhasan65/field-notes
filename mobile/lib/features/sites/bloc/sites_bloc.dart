@@ -56,7 +56,6 @@ class SitesState extends Equatable {
       ];
 }
 
-/// Sites of the user, optionally only those of one customer.
 class SitesBloc extends Bloc<SitesEvent, SitesState> {
   SitesBloc({
     required this.repository,

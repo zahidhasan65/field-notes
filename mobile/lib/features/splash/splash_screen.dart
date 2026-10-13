@@ -6,8 +6,7 @@ import '../../core/core.dart';
 import '../../widgets/widgets.dart';
 import '../auth/bloc/auth_bloc.dart';
 
-/// Splash: landscape rises in, logo pops, texts fade up, progress bar fills.
-/// Then goes to Restore / Home (session found) or Login.
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -15,11 +14,15 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 3000));
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 3000),
+  );
 
-  Animation<double> _interval(double a, double b, [Curve curve = Curves.easeOutCubic]) =>
+  Animation<double> _interval(double a, double b,
+      [Curve curve = Curves.easeOutCubic]) =>
       CurvedAnimation(parent: _c, curve: Interval(a, b, curve: curve));
 
   late final _land = _interval(0.0, 0.45);
@@ -55,8 +58,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(children: [
+    body: Container(
+
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFEAF4FF), Colors.white],
+          stops: [0.0, 0.6],
+        ),
+      ),
+      child: Stack(
+
+        fit: StackFit.expand,
+        children: [
+
           Positioned(
             left: 0,
             right: 0,
@@ -64,16 +80,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: FadeTransition(
               opacity: _land,
               child: SlideTransition(
-                position: Tween<Offset>(begin: const Offset(0, .15), end: Offset.zero).animate(_land),
+                position: Tween<Offset>(
+                  begin: const Offset(0, .15),
+                  end: Offset.zero,
+                ).animate(_land),
                 child: Image.asset(
                   Assets.splashLandscape,
+                  width: double.infinity,
                   fit: BoxFit.fitWidth,
                   alignment: Alignment.bottomCenter,
                   errorBuilder: (_, __, ___) => Container(
                     height: 260,
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.white, Color(0xFFD9ECDD)],
+                        colors: [Colors.transparent, Color(0xFFD9ECDD)],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -83,50 +103,83 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
             ),
           ),
+
           SafeArea(
-            child: Column(children: [
-              const Spacer(flex: 3),
-              ScaleTransition(
-                scale: Tween<double>(begin: .55, end: 1).animate(_logo),
-                child: FadeTransition(
-                  opacity: CurvedAnimation(parent: _c, curve: const Interval(0.12, 0.35)),
-                  child: const Hero(tag: 'app_logo', child: AppLogo(size: 120)),
-                ),
-              ),
-              const SizedBox(height: 18),
-              FadeTransition(
-                opacity: _title,
-                child: SlideTransition(
-                  position: Tween<Offset>(begin: const Offset(0, .4), end: Offset.zero).animate(_title),
-                  child: const Text('Field Notes',
-                      style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: AppColors.text)),
-                ),
-              ),
-              const SizedBox(height: 6),
-              FadeTransition(
-                opacity: _tagline,
-                child: const Text('Capture. Organize. Sync.',
-                    style: TextStyle(color: AppColors.muted, fontSize: 15, letterSpacing: .4)),
-              ),
-              const Spacer(flex: 6),
-              AnimatedBuilder(
-                animation: _c,
-                builder: (_, __) => Container(
-                  width: 170,
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.9),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(value: _c.value, minHeight: 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(flex: 3),
+                ScaleTransition(
+                  scale: Tween<double>(begin: .55, end: 1).animate(_logo),
+                  child: FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: _c,
+                      curve: const Interval(0.12, 0.35),
+                    ),
+                    child: const Hero(
+                      tag: 'app_logo',
+                      child: AppLogo(size: 140),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 36),
-            ]),
+                const SizedBox(height: 18),
+                FadeTransition(
+                  opacity: _title,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, .4),
+                      end: Offset.zero,
+                    ).animate(_title),
+                    child: const Text(
+                      'Field Notes',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FadeTransition(
+                  opacity: _tagline,
+                  child: const Text(
+                    'Capture. Organize. Sync.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 15,
+                      letterSpacing: .4,
+                    ),
+                  ),
+                ),
+                const Spacer(flex: 6),
+
+                AnimatedBuilder(
+                  animation: _c,
+                  builder: (_, __) => Container(
+                    width: 170,
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(.9),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: _c.value,
+                        minHeight: 5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 36),
+              ],
+            ),
           ),
-        ]),
-      );
+        ],
+      ),
+    ),
+  );
 }

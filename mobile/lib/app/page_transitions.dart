@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Soft fade + slide transition used for every screen.
 class FadeSlideRoute<T> extends PageRouteBuilder<T> {
   FadeSlideRoute({required WidgetBuilder builder, super.settings})
       : super(

@@ -28,7 +28,6 @@ class CustomerLocalDataSource extends SyncTableDataSource {
     return rows.isEmpty ? null : CustomerLocal.fromMap(rows.first);
   }
 
-  /// Customers with number of sites / notes (sub-queries, no duplicated data).
   Future<List<CustomerView>> listViews(String userId, {String query = ''}) async {
     final db = await helper.database;
     final like = '%${query.trim()}%';

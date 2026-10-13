@@ -1,5 +1,5 @@
-/// Answer of POST /auth/forgot-password.
-/// [devOtp] is only present in demo mode (the server has no e-mail provider).
+
+
 class PasswordResetResult {
   final String message;
   final String? devOtp;

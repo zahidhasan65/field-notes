@@ -2,8 +2,7 @@ import 'dart:math';
 
 final Random _random = Random.secure();
 
-/// RFC 4122 version 4 UUID. Records get their id on the device, so they can be
-/// created offline and keep the same id on the server.
+
 String newUuid() {
   final bytes = List<int>.generate(16, (_) => _random.nextInt(256));
   bytes[6] = (bytes[6] & 0x0f) | 0x40;

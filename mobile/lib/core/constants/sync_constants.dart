@@ -35,6 +35,5 @@ class SyncQueueStatus {
 class SyncLimits {
   SyncLimits._();
 
-  /// After this many failed attempts an item waits for a manual retry.
   static const int maxRetries = 5;
 }

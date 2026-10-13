@@ -3,7 +3,6 @@ import 'field_note_local.dart';
 import 'note_status.dart';
 import 'site_local.dart';
 
-/// Customer + counts (JOIN/sub-query result, never stored).
 class CustomerView {
   final CustomerLocal customer;
   final int siteCount;
@@ -11,7 +10,6 @@ class CustomerView {
   const CustomerView(this.customer, {this.siteCount = 0, this.noteCount = 0});
 }
 
-/// Site + its customer name and note count.
 class SiteView {
   final SiteLocal site;
   final String customerName;
@@ -19,7 +17,6 @@ class SiteView {
   const SiteView(this.site, {required this.customerName, this.noteCount = 0});
 }
 
-/// Note + its site and customer (loaded with JOINs, nothing is duplicated in the DB).
 class NoteView {
   final FieldNoteLocal note;
   final String siteName;
@@ -39,7 +36,6 @@ class DeleteImpact {
   const DeleteImpact({this.sites = 0, this.notes = 0});
 }
 
-/// Form drafts (what the user typed).
 class CustomerDraft {
   final String name;
   final String? contactPerson;
@@ -79,10 +75,8 @@ class NoteDraft {
   final double? latitude;
   final double? longitude;
 
-  /// Photo file on this device (null = no photo).
   final String? photoPath;
 
-  /// true when the user picked a new photo or removed the old one.
   final bool photoChanged;
 
   const NoteDraft({

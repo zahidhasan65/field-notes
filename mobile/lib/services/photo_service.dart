@@ -8,7 +8,6 @@ import '../widgets/permission_dialogs.dart';
 import 'permission_service.dart';
 import 'photo_storage.dart';
 
-/// Camera / gallery picker. Returns the path of a copy stored inside the app.
 class PhotoService {
   PhotoService(this._permissions, this._storage);
 

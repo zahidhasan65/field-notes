@@ -1,7 +1,6 @@
 import 'dart:async';
 
-/// Tiny change bus. Repositories and the sync engine call [notify] after they
-/// touched the database; BLoCs listen and reload their lists.
+
 class DataEvents {
   DataEvents._();
 

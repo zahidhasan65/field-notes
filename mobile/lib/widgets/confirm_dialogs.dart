@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/core.dart';
 
-/// [details] is an optional warning line, e.g. "This will also delete 3 sites and 12 notes."
 Future<bool> confirmDelete(BuildContext context, String what, {String? details}) async {
   final r = await showDialog<bool>(
     context: context,
@@ -37,7 +36,6 @@ Future<bool> confirmDelete(BuildContext context, String what, {String? details})
 
 enum LogoutChoice { cancel, syncFirst, logoutAnyway }
 
-/// Warns about unsynced changes before logout.
 Future<LogoutChoice> confirmLogout(BuildContext context, int unsynced) async {
   final r = await showDialog<LogoutChoice>(
     context: context,

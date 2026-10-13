@@ -11,7 +11,6 @@ class CustomerSubmitted extends Equatable {
   List<Object?> get props => [draft.name, draft.contactPerson, draft.email, draft.phone, draft.address];
 }
 
-/// Creates a customer, or updates [existing].
 class CustomerFormBloc extends Bloc<CustomerSubmitted, SubmitState> {
   CustomerFormBloc({
     required this.repository,

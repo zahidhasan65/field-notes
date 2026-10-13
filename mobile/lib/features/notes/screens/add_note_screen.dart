@@ -12,8 +12,7 @@ import '../../settings/bloc/settings_bloc.dart';
 import '../../sync/bloc/sync_bloc.dart';
 import '../bloc/note_form_bloc.dart';
 
-/// Add a field note, or edit one when [note] is given. [site] pre-selects the site.
-/// New notes start with the "Default Note Status" from Settings.
+
 class AddNoteScreen extends StatefulWidget {
   final FieldNoteLocal? note;
   final SiteLocal? site;

@@ -14,17 +14,14 @@ class RemoteChanges {
   });
 }
 
-/// Talks to the Spring Boot API. Throws NetworkException, AuthExpiredException
-/// or ApiException.
+
 abstract class SyncRemoteDataSource {
   Future<void> push(SyncQueueItem item);
 
-  /// Uploads the photo file. Returns the remote photo path.
   Future<String?> uploadPhoto(String noteId, String filePath);
 
   Future<void> deletePhoto(String noteId);
 
-  /// since == null -> full snapshot (restore), otherwise changes + tombstones.
   Future<RemoteChanges> fetchChanges({DateTime? since});
 
   Future<List<int>?> downloadPhoto(String noteId);

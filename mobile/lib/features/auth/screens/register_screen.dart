@@ -103,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           validator: (v) =>
                               (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
                         ),
-                        // the backend requires at least 8 characters
+
                         PasswordField(
                           hint: 'Password (min 8 characters)',
                           controller: _pass,

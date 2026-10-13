@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/core.dart';
 
-/// Uses the real logo asset; falls back to a gradient icon if the asset is missing.
 class AppLogo extends StatelessWidget {
   final double size;
   const AppLogo({super.key, this.size = 64});

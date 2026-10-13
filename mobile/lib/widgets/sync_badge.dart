@@ -4,8 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/data.dart';
 import '../features/sync/bloc/sync_bloc.dart';
 
-/// Small per-record sync indicator (synced / pending / syncing / failed).
-/// Tap it when failed to retry.
+
 class SyncBadge extends StatelessWidget {
   final String syncStatus;
   final bool showLabel;

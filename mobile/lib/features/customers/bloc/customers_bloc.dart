@@ -23,7 +23,6 @@ class CustomersQueryChanged extends CustomersEvent {
   List<Object?> get props => [query];
 }
 
-/// The database changed (local edit or sync).
 class CustomersChanged extends CustomersEvent {
   const CustomersChanged();
 }

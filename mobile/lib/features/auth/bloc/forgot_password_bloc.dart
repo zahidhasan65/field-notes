@@ -4,14 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/core.dart';
 import '../data/auth_repository.dart';
 
-// ---------------- events ----------------
 sealed class ForgotPasswordEvent extends Equatable {
   const ForgotPasswordEvent();
   @override
   List<Object?> get props => [];
 }
 
-/// Step 1: user typed an e-mail and pressed "Send OTP" (or "Resend OTP").
 class ForgotPasswordOtpRequested extends ForgotPasswordEvent {
   final String email;
   const ForgotPasswordOtpRequested(this.email);
@@ -19,7 +17,6 @@ class ForgotPasswordOtpRequested extends ForgotPasswordEvent {
   List<Object?> get props => [email];
 }
 
-/// Step 2: OTP + new password.
 class ForgotPasswordResetSubmitted extends ForgotPasswordEvent {
   final String otp;
   final String newPassword;
@@ -28,12 +25,10 @@ class ForgotPasswordResetSubmitted extends ForgotPasswordEvent {
   List<Object?> get props => [otp, newPassword];
 }
 
-/// "Use a different e-mail".
 class ForgotPasswordEmailEditRequested extends ForgotPasswordEvent {
   const ForgotPasswordEmailEditRequested();
 }
 
-// ---------------- state ----------------
 enum ForgotStep { email, otp }
 
 class ForgotPasswordState extends Equatable {
@@ -42,10 +37,8 @@ class ForgotPasswordState extends Equatable {
   final String email;
   final String? error;
 
-  /// Demo OTP returned by the server (shown in a snackbar).
   final String? devOtp;
 
-  /// Increases each time an OTP was sent, so the UI shows the snackbar once per OTP.
   final int otpNonce;
   final bool resetDone;
 
@@ -84,7 +77,6 @@ class ForgotPasswordState extends Equatable {
   List<Object?> get props => [step, isLoading, email, error, devOtp, otpNonce, resetDone];
 }
 
-// ---------------- bloc ----------------
 class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> {
   ForgotPasswordBloc({
     required this.repository,

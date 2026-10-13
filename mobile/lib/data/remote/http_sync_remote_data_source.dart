@@ -82,7 +82,6 @@ class HttpSyncRemoteDataSource implements SyncRemoteDataSource {
         throw ApiException(0, 'Unknown entity type ${item.entityType}');
     }
 
-    // Deleting something the server no longer has is fine.
     _check(r, okOn404: op == SyncOperation.delete);
   }
 

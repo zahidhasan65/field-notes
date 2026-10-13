@@ -1,0 +1,5 @@
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/field_notes_app_logo_v2.png"
+  min_sdk_android: 21

@@ -8,7 +8,6 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
-/// The server could not be reached (offline, timeout, DNS ...).
 class NetworkException extends ApiException {
   const NetworkException([
     super.statusCode = 0,
@@ -16,7 +15,6 @@ class NetworkException extends ApiException {
   ]);
 }
 
-/// 401 on an authenticated request: the token is missing or expired.
 class AuthExpiredException extends ApiException {
   const AuthExpiredException([
     super.statusCode = 401,

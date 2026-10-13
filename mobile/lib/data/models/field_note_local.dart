@@ -11,10 +11,8 @@ class FieldNoteLocal {
   final double? latitude;
   final double? longitude;
 
-  /// Remote path of the photo (set once the server has it).
   final String? photoUrl;
 
-  /// Photo file stored on this device (what the UI shows).
   final String? photoPath;
 
   final String createdAt;
@@ -82,8 +80,7 @@ class FieldNoteLocal {
         syncStatus: (m['sync_status'] as String?) ?? SyncStatus.synced,
       );
 
-  /// Server JSON -> local row. [existing] keeps the local photo file when the
-  /// photo did not change on the server.
+
   factory FieldNoteLocal.fromServer(
     Map<String, dynamic> j, {
     FieldNoteLocal? existing,
@@ -107,7 +104,6 @@ class FieldNoteLocal {
     );
   }
 
-  /// Body for POST/PUT. Photo handling is done separately (multipart).
   Map<String, dynamic> toApiPayload() => {
         'id': id,
         'siteId': siteId,

@@ -1,7 +1,6 @@
 import '../../../core/core.dart';
 import '../database/database_helper.dart';
 
-/// Keeps one row per account that used this device (customers.user_id points here).
 class UserLocalDataSource {
   UserLocalDataSource(this.helper);
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/core.dart';
 
-/// What the user sees for the whole app (banner / pill / settings).
 enum SyncUiStatus {
   online(Icons.wifi, AppColors.green, 'Online', 'All data is up to date'),
   offline(Icons.wifi_off, AppColors.orange, "You're offline",
@@ -17,7 +16,6 @@ enum SyncUiStatus {
   final String subtitle;
 }
 
-/// What the user sees on one customer / site / note.
 enum RecordSync {
   synced(Icons.cloud_done_outlined, AppColors.green, 'Synced'),
   pending(Icons.cloud_upload_outlined, AppColors.orange, 'Pending'),
@@ -29,7 +27,6 @@ enum RecordSync {
   final Color color;
   final String label;
 
-  /// Maps the stored sync_status string.
   static RecordSync fromStatus(String status, {required bool isSyncing}) {
     switch (status) {
       case SyncStatus.synced:

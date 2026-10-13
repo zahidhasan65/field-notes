@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/core.dart';
 import '../features/sync/bloc/sync_bloc.dart';
 
-/// White pill with the real sync state (Home header).
 class SyncStatusPill extends StatelessWidget {
   final VoidCallback onTap;
   const SyncStatusPill({super.key, required this.onTap});

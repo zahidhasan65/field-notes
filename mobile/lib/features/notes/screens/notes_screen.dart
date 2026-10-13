@@ -8,7 +8,6 @@ import '../../../data/data.dart';
 import '../../../widgets/widgets.dart';
 import '../bloc/notes_bloc.dart';
 
-/// Field notes list: search, status filter, site filter, pull-to-refresh.
 class NotesScreen extends StatelessWidget {
   const NotesScreen({super.key});
 

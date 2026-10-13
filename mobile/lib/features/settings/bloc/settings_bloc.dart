@@ -28,8 +28,7 @@ class SettingsState extends Equatable {
   List<Object?> get props => [defaultStatus];
 }
 
-/// "Default Note Status": saved on the device only (not synced), used when a
-/// new field note is created, and still there after restarting the app.
+
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   SettingsBloc({required this.repository}) : super(const SettingsState()) {
     on<SettingsStarted>((e, emit) async {

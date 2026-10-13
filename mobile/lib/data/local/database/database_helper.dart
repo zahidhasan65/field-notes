@@ -1,10 +1,9 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-/// SQLite database (offline-first storage).
-///
-/// Relationships: users 1-N customers 1-N sites 1-N field_notes.
-/// Customer / site names are never copied into notes: they are read with JOINs.
+
+
+
 class DatabaseHelper {
   DatabaseHelper._internal();
 
@@ -134,7 +133,6 @@ class DatabaseHelper {
     }
   }
 
-  /// Removes all rows (used by tests and "clear local data").
   Future<void> wipeEverything() async {
     final db = await database;
     await db.transaction((txn) async {

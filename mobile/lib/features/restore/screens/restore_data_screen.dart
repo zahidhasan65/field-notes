@@ -8,8 +8,7 @@ import '../../../data/data.dart';
 import '../../../widgets/widgets.dart';
 import '../bloc/restore_bloc.dart';
 
-/// Shown after login on a fresh install / after "clear local data".
-/// Downloads the user's customers, sites, notes and photos from the server.
+
 class RestoreDataScreen extends StatelessWidget {
   const RestoreDataScreen({super.key});
 

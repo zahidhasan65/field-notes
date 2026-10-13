@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/core.dart';
 
-/// Looks like the OS permission prompt (prototype).
 Future<bool> showSystemPermissionDialog(
   BuildContext context, {
   required IconData icon,
@@ -23,7 +22,6 @@ Future<bool> showSystemPermissionDialog(
   return r ?? false;
 }
 
-/// Shown when a permission was denied permanently. Returns true if "Open Settings" was tapped.
 Future<bool> showPermissionBlockedDialog(
   BuildContext context, {
   required IconData icon,

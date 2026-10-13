@@ -30,7 +30,6 @@ class ApiService {
   Future<ApiResponse> delete({required String endpoint, String? token}) =>
       _sendJson('DELETE', endpoint, token: token);
 
-  /// multipart/form-data upload with a single file field.
   Future<ApiResponse> postFile({
     required String endpoint,
     required String filePath,
@@ -52,7 +51,7 @@ class ApiService {
       ));
 
       final streamed = await request.send().timeout(uploadTimeout);
-      // FIX: the body read now has a timeout too (it could hang forever before).
+
       final response =
       await http.Response.fromStream(streamed).timeout(uploadTimeout);
       return _toApiResponse(response);
@@ -108,7 +107,7 @@ class ApiService {
       }
 
       final streamed = await request.send().timeout(ApiConstants.timeout);
-      // FIX: the body read now has a timeout too (it could hang forever before).
+
       final response = await http.Response.fromStream(streamed)
           .timeout(ApiConstants.timeout);
       return _toApiResponse(response);
@@ -140,9 +139,7 @@ class ApiService {
     );
   }
 
-  /// statusCode 0  -> the server could not be reached (offline / timeout).
-  /// statusCode -1 -> a local error (bad file, bad data ...). It is NOT
-  ///                  "offline", so sync reports it instead of retrying forever.
+
   ApiResponse _networkError(Object e) {
     debugPrint('API error: $e');
     final unreachable = e is SocketException ||
@@ -158,7 +155,6 @@ class ApiService {
     );
   }
 
-  /// The backend only accepts image content types, so send the right one.
   MediaType _mediaTypeFor(String path) {
     final lower = path.toLowerCase();
     if (lower.endsWith('.png')) return MediaType('image', 'png');

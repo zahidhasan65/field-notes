@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +8,6 @@ import '../../../core/core.dart';
 import '../../../data/data.dart';
 import '../../../data/local/data_sources/sync_queue_local_data_source.dart';
 
-// ---------------- events ----------------
 sealed class SyncEvent extends Equatable {
   const SyncEvent();
   @override
@@ -26,7 +25,6 @@ class SyncStopped extends SyncEvent {
   const SyncStopped();
 }
 
-/// Run a sync now. [completer] completes when it is finished (pull-to-refresh).
 class SyncRequested extends SyncEvent {
   final Completer<void>? completer;
   const SyncRequested({this.completer});
@@ -47,7 +45,6 @@ class SyncCountsRequested extends SyncEvent {
   const SyncCountsRequested();
 }
 
-// ---------------- state ----------------
 class SyncBlocState extends Equatable {
   final bool isOnline;
   final bool isSyncing;
@@ -82,27 +79,31 @@ class SyncBlocState extends Equatable {
     int? failedCount,
     DateTime? lastSyncedAt,
     bool? sessionExpired,
-  }) =>
-      SyncBlocState(
-        isOnline: isOnline ?? this.isOnline,
-        isSyncing: isSyncing ?? this.isSyncing,
-        pendingCount: pendingCount ?? this.pendingCount,
-        failedCount: failedCount ?? this.failedCount,
-        lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
-        sessionExpired: sessionExpired ?? this.sessionExpired,
-      );
+  }) => SyncBlocState(
+    isOnline: isOnline ?? this.isOnline,
+    isSyncing: isSyncing ?? this.isSyncing,
+    pendingCount: pendingCount ?? this.pendingCount,
+    failedCount: failedCount ?? this.failedCount,
+    lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+    sessionExpired: sessionExpired ?? this.sessionExpired,
+  );
 
   @override
-  List<Object?> get props =>
-      [isOnline, isSyncing, pendingCount, failedCount, lastSyncedAt, sessionExpired];
+  List<Object?> get props => [
+    isOnline,
+    isSyncing,
+    pendingCount,
+    failedCount,
+    lastSyncedAt,
+    sessionExpired,
+  ];
 }
 
-// ---------------- bloc ----------------
-/// Runs the sync automatically:
-///   - when the app opens / the user logs in
-///   - when the connection comes back
-///   - every 45 seconds while online
-///   - when the user pulls to refresh or taps "Sync now"
+
+
+
+
+
 class SyncBloc extends Bloc<SyncEvent, SyncBlocState> {
   SyncBloc({
     required this.engine,
@@ -129,25 +130,33 @@ class SyncBloc extends Bloc<SyncEvent, SyncBlocState> {
   StreamSubscription<void>? _dataSub;
   Timer? _timer;
 
-  Future<void> _onStarted(SyncStarted event, Emitter<SyncBlocState> emit) async {
+  Future<void> _onStarted(
+    SyncStarted event,
+    Emitter<SyncBlocState> emit,
+  ) async {
     _userId = event.userId;
     await queue.resetStuckProcessing(event.userId);
 
     final online = await connectivity.isOnline();
     final last = await settings.getLastSynced(event.userId);
-    emit(SyncBlocState(
-      isOnline: online,
-      lastSyncedAt: last,
-      pendingCount: await queue.pendingCount(event.userId),
-      failedCount: await queue.failedCount(event.userId),
-    ));
+    emit(
+      SyncBlocState(
+        isOnline: online,
+        lastSyncedAt: last,
+        pendingCount: await queue.pendingCount(event.userId),
+        failedCount: await queue.failedCount(event.userId),
+      ),
+    );
 
     await _connectivitySub?.cancel();
-    _connectivitySub = connectivity.onConnectivityChanged
-        .listen((online) => add(SyncConnectivityChanged(online)));
+    _connectivitySub = connectivity.onConnectivityChanged.listen(
+      (online) => add(SyncConnectivityChanged(online)),
+    );
 
     await _dataSub?.cancel();
-    _dataSub = DataEvents.stream.listen((_) => add(const SyncCountsRequested()));
+    _dataSub = DataEvents.stream.listen(
+      (_) => add(const SyncCountsRequested()),
+    );
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 45), (_) {
@@ -157,7 +166,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncBlocState> {
     if (online) add(const SyncRequested());
   }
 
-  Future<void> _onStopped(SyncStopped event, Emitter<SyncBlocState> emit) async {
+  Future<void> _onStopped(
+    SyncStopped event,
+    Emitter<SyncBlocState> emit,
+  ) async {
     _userId = null;
     _timer?.cancel();
     await _connectivitySub?.cancel();
@@ -166,22 +178,31 @@ class SyncBloc extends Bloc<SyncEvent, SyncBlocState> {
   }
 
   Future<void> _onConnectivityChanged(
-      SyncConnectivityChanged event, Emitter<SyncBlocState> emit) async {
+    SyncConnectivityChanged event,
+    Emitter<SyncBlocState> emit,
+  ) async {
     emit(state.copyWith(isOnline: event.isOnline));
     if (event.isOnline && _userId != null) add(const SyncRequested());
   }
 
-  Future<void> _onCounts(SyncCountsRequested event, Emitter<SyncBlocState> emit) async {
+  Future<void> _onCounts(
+    SyncCountsRequested event,
+    Emitter<SyncBlocState> emit,
+  ) async {
     final userId = _userId;
     if (userId == null) return;
-    emit(state.copyWith(
-      pendingCount: await queue.pendingCount(userId),
-      failedCount: await queue.failedCount(userId),
-    ));
+    emit(
+      state.copyWith(
+        pendingCount: await queue.pendingCount(userId),
+        failedCount: await queue.failedCount(userId),
+      ),
+    );
   }
 
   Future<void> _onRetryFailed(
-      SyncRetryFailedRequested event, Emitter<SyncBlocState> emit) async {
+    SyncRetryFailedRequested event,
+    Emitter<SyncBlocState> emit,
+  ) async {
     final userId = _userId;
     if (userId == null) return;
     await queue.resetFailed(userId);
@@ -189,39 +210,72 @@ class SyncBloc extends Bloc<SyncEvent, SyncBlocState> {
     add(const SyncRequested());
   }
 
-  Future<void> _onRequested(SyncRequested event, Emitter<SyncBlocState> emit) async {
+  Future<void> _onRequested(
+    SyncRequested event,
+    Emitter<SyncBlocState> emit,
+  ) async {
     final userId = _userId;
+
     if (userId == null || _busy) {
-      event.completer?.complete();
+      final completer = event.completer;
+      if (completer != null && !completer.isCompleted) {
+        completer.complete();
+      }
       return;
     }
+
     _busy = true;
 
     try {
       final online = await connectivity.isOnline();
+
       if (!online) {
         emit(state.copyWith(isOnline: false));
         return;
       }
 
       emit(state.copyWith(isOnline: true, isSyncing: true));
-      final result = await engine.sync(userId);
 
-      final healthy = !result.offline && !result.authExpired && result.failed == 0;
-      emit(state.copyWith(
-        isSyncing: false,
-        isOnline: !result.offline,
-        sessionExpired: result.authExpired,
-        lastSyncedAt: healthy ? DateTime.now() : state.lastSyncedAt,
-        pendingCount: await queue.pendingCount(userId),
-        failedCount: await queue.failedCount(userId),
-      ));
+      final result = await engine.sync(userId);
+      final healthy =
+          !result.offline && !result.authExpired && result.failed == 0;
+
+      emit(
+        state.copyWith(
+          isOnline: !result.offline,
+          sessionExpired: result.authExpired,
+          lastSyncedAt: healthy ? DateTime.now() : state.lastSyncedAt,
+        ),
+      );
     } catch (e, st) {
       debugPrint('SYNC ERROR: $e\n$st');
-      emit(state.copyWith(isSyncing: false));
     } finally {
       _busy = false;
-      event.completer?.complete();
+
+      try {
+        if (_userId == userId) {
+          final pending = await queue.pendingCount(userId);
+          final failed = await queue.failedCount(userId);
+
+          emit(
+            state.copyWith(
+              isSyncing: false,
+              pendingCount: pending,
+              failedCount: failed,
+            ),
+          );
+        } else {
+          emit(state.copyWith(isSyncing: false));
+        }
+      } catch (e, st) {
+        debugPrint('SYNC STATE REFRESH ERROR: $e\n$st');
+        emit(state.copyWith(isSyncing: false));
+      } finally {
+        final completer = event.completer;
+        if (completer != null && !completer.isCompleted) {
+          completer.complete();
+        }
+      }
     }
   }
 

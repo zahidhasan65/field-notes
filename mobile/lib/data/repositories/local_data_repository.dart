@@ -3,8 +3,7 @@ import '../local/data_sources/field_note_local_data_source.dart';
 import '../local/database/database_helper.dart';
 import 'data_events.dart';
 
-/// "Clear local data": wipes everything stored on this device for a user.
-/// The next login restores it from the server.
+
 class LocalDataRepository {
   LocalDataRepository({
     required this.helper,

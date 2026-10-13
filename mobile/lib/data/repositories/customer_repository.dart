@@ -12,8 +12,7 @@ import '../models/sync_queue_item.dart';
 import '../models/views.dart';
 import 'data_events.dart';
 
-/// Local-first customer storage. Every write goes to SQLite and into the sync
-/// queue in ONE transaction, so the app works fully offline.
+
 class CustomerRepository {
   CustomerRepository({
     required this.helper,
@@ -120,7 +119,6 @@ class CustomerRepository {
     DataEvents.notify();
   }
 
-  /// Deletes the customer with its sites and notes (like the server does).
   Future<void> delete(CustomerLocal c) async {
     final now = nowIso();
     final db = await helper.database;
@@ -131,7 +129,6 @@ class CustomerRepository {
       final noteIds = await notes.idsBySites(txn, siteIds);
       photoPaths = await notes.photoPathsByIds(txn, noteIds);
 
-      // children are removed by the server together with the customer
       await queue.removeForEntities(txn, SyncEntityType.fieldNote, noteIds);
       await queue.removeForEntities(txn, SyncEntityType.site, siteIds);
       await notes.softDeleteMany(txn, noteIds, now, syncStatus: SyncStatus.synced);

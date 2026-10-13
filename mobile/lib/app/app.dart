@@ -55,7 +55,7 @@ class FieldNotesApp extends StatelessWidget {
           ],
           child: MultiBlocListener(
             listeners: [
-              // Logged out (button, cleared data or expired session) -> back to Login.
+
               BlocListener<AuthBloc, AuthState>(
                 listenWhen: (prev, curr) =>
                     prev is AuthAuthenticated && curr is AuthUnauthenticated,
@@ -65,7 +65,7 @@ class FieldNotesApp extends StatelessWidget {
                       ?.pushNamedAndRemoveUntil(Routes.login, (_) => false);
                 },
               ),
-              // The server rejected our token while syncing.
+
               BlocListener<SyncBloc, SyncBlocState>(
                 listenWhen: (prev, curr) => !prev.sessionExpired && curr.sessionExpired,
                 listener: (context, state) =>
