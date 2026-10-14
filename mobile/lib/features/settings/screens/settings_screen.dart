@@ -244,7 +244,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          // ---------------- sync ----------------
           _sectionTitle('Sync & data'),
           const AnimatedEntrance(index: 5, child: _SyncCard()),
           const SizedBox(height: 10),

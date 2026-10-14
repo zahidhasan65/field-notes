@@ -58,6 +58,11 @@ class AuthSessionExpired extends AuthEvent {
   const AuthSessionExpired();
 }
 
+// Screen change korar somoy purono error muche felar jonno
+class AuthErrorCleared extends AuthEvent {
+  const AuthErrorCleared();
+}
+
 // ---------------- states ----------------
 sealed class AuthState extends Equatable {
   const AuthState();
@@ -114,6 +119,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
     on<AuthSessionExpired>(_onSessionExpired);
+    on<AuthErrorCleared>((event, emit) {
+      if (state is AuthFailure) emit(const AuthUnauthenticated());
+    });
   }
 
   final AuthRepository repository;

@@ -330,13 +330,7 @@ class _Stats extends StatelessWidget {
                   ]),
                 ),
               );
-          return Row(children: [
-            item(Icons.people, 'Customers', v[0], AppColors.orange),
-            const SizedBox(width: 10),
-            item(Icons.location_city, 'Sites', v[1], AppColors.green),
-            const SizedBox(width: 10),
-            item(Icons.description, 'Notes', v[2], AppColors.primary),
-          ]);
+          return SizedBox();
         },
       );
 }
