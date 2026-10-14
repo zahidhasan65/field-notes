@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/core.dart';
 import '../data/auth_repository.dart';
 
+// ---------------- events ----------------
 sealed class ForgotPasswordEvent extends Equatable {
   const ForgotPasswordEvent();
   @override
@@ -29,6 +30,7 @@ class ForgotPasswordEmailEditRequested extends ForgotPasswordEvent {
   const ForgotPasswordEmailEditRequested();
 }
 
+// ---------------- state ----------------
 enum ForgotStep { email, otp }
 
 class ForgotPasswordState extends Equatable {
@@ -77,6 +79,7 @@ class ForgotPasswordState extends Equatable {
   List<Object?> get props => [step, isLoading, email, error, devOtp, otpNonce, resetDone];
 }
 
+// ---------------- bloc ----------------
 class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> {
   ForgotPasswordBloc({
     required this.repository,

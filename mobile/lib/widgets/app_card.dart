@@ -15,9 +15,9 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.pal.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.pal.border),
           boxShadow: const [
             BoxShadow(color: Color(0x0D0F172A), blurRadius: 14, offset: Offset(0, 5)),
           ],

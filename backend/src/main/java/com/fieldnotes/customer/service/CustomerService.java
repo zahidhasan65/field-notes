@@ -42,7 +42,7 @@ public class CustomerService {
         this.fieldNoteRepository = fieldNoteRepository;
     }
 
-    /** Idempotent when request.id() is supplied: a retry returns the existing row. */
+    
     public CustomerResponse create(
         UUID userId,
         CreateCustomerRequest request
@@ -104,7 +104,7 @@ public class CustomerService {
         return toResponse(customerRepository.save(customer));
     }
 
-    /** Soft deletes the customer together with its sites and field notes. */
+    
     public void delete(UUID userId, UUID customerId) {
         Customer customer = getCustomer(userId, customerId);
         Instant now = Instant.now();

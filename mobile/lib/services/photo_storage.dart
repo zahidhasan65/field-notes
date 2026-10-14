@@ -38,7 +38,7 @@ class PhotoStorage {
       final f = File(path);
       if (await f.exists()) await f.delete();
     } catch (_) {
-
+      // best effort
     }
   }
 

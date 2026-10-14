@@ -53,8 +53,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           final error = state is AuthFailure ? state.message : null;
 
           return Scaffold(
-            backgroundColor: Colors.white,
-            appBar: AppBar(backgroundColor: Colors.white),
+            backgroundColor: context.pal.surface,
+            appBar: AppBar(backgroundColor: context.pal.surface),
             body: SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -103,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           validator: (v) =>
                               (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
                         ),
-
+                        // the backend requires at least 8 characters
                         PasswordField(
                           hint: 'Password (min 8 characters)',
                           controller: _pass,

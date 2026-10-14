@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart' show ThemeMode;
+
 import '../local/data_sources/app_settings_local_data_source.dart';
 import '../models/note_status.dart';
 
@@ -14,6 +16,32 @@ class AppSettingsRepository {
   Future<void> setDefaultNoteStatus(NoteStatus status) =>
       local.set(_defaultStatusKey, status.apiValue);
 
+  // ---- appearance ----
+  Future<ThemeMode> getThemeMode() async => switch (await local.get('theme_mode')) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+
+  Future<void> setThemeMode(ThemeMode mode) => local.set('theme_mode', mode.name);
+
+  // ---- notification switches (on by default) ----
+  Future<bool> getNotifySync() async => (await local.get('notify_sync')) != '0';
+
+  Future<void> setNotifySync(bool value) => local.set('notify_sync', value ? '1' : '0');
+
+  Future<bool> getNotifyOffline() async => (await local.get('notify_offline')) != '0';
+
+  Future<void> setNotifyOffline(bool value) => local.set('notify_offline', value ? '1' : '0');
+
+  // ---- profile photo (stored on this device) ----
+  Future<String?> getProfilePhoto(String userId) => local.get('profile_photo:$userId');
+
+  Future<void> setProfilePhoto(String userId, String? path) => path == null
+      ? local.remove('profile_photo:$userId')
+      : local.set('profile_photo:$userId', path);
+
+  // ---- per user sync bookkeeping ----
   Future<bool> isRestoreDone(String userId) async =>
       (await local.get('restore_done:$userId')) == '1';
 

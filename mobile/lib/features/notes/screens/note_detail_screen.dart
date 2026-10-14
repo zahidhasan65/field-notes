@@ -66,9 +66,9 @@ class NoteDetailScreen extends StatelessWidget {
                         height: 120,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.pal.surface,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: context.pal.border),
                         ),
                         child: Text(
                           n.photoUrl != null ? 'Photo is being downloaded...' : 'No photo attached',

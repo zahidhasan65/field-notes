@@ -11,7 +11,7 @@ class FieldLabel extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 6),
         child: Text.rich(TextSpan(
           text: text,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.text),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           children: [
             if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: AppColors.red)),
           ],

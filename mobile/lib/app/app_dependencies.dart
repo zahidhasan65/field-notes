@@ -3,6 +3,7 @@ import '../data/data.dart';
 import '../data/local/data_sources/app_settings_local_data_source.dart';
 import '../data/local/data_sources/customer_local_data_source.dart';
 import '../data/local/data_sources/field_note_local_data_source.dart';
+import '../data/local/data_sources/notification_local_data_source.dart';
 import '../data/local/data_sources/site_local_data_source.dart';
 import '../data/local/data_sources/sync_queue_local_data_source.dart';
 import '../data/local/data_sources/user_local_data_source.dart';
@@ -32,6 +33,10 @@ class AppDependencies {
     final userDs = UserLocalDataSource(helper);
 
     settings = AppSettingsRepository(AppSettingsLocalDataSource(helper));
+    notifications = NotificationRepository(
+      local: NotificationLocalDataSource(helper),
+      settings: settings,
+    );
 
     customers = CustomerRepository(
       helper: helper,
@@ -90,6 +95,7 @@ class AppDependencies {
   late final PhotoStorage photoStorage;
   late final SyncQueueLocalDataSource queue;
   late final AppSettingsRepository settings;
+  late final NotificationRepository notifications;
   late final CustomerRepository customers;
   late final SiteRepository sites;
   late final FieldNoteRepository notes;

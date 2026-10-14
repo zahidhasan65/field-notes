@@ -1,5 +1,6 @@
 import '../../../core/core.dart';
 import '../models/auth_response_model.dart';
+import '../models/auth_user_model.dart';
 import '../models/password_reset_result.dart';
 
 abstract class AuthRemoteDataSource {
@@ -14,6 +15,14 @@ abstract class AuthRemoteDataSource {
   Future<AuthResponseModel> loginWithGoogle({required String idToken});
 
   Future<PasswordResetResult> requestPasswordReset({required String email});
+
+  Future<AuthUserModel> updateName({required String token, required String name});
+
+  Future<void> changePassword({
+    required String token,
+    required String currentPassword,
+    required String newPassword,
+  });
 
   Future<void> resetPassword({
     required String email,
@@ -84,8 +93,36 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     _check(r, 'Could not reset the password.');
   }
 
-  void _check(ApiResponse r, String fallback) {
+  @override
+  Future<AuthUserModel> updateName({required String token, required String name}) async {
+    final r = await apiService.put(
+      endpoint: ApiConstants.me,
+      body: {'name': name},
+      token: token,
+    );
+    _check(r, 'Could not update your name.', authenticated: true);
+    return AuthUserModel.fromJson(r.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> changePassword({
+    required String token,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final r = await apiService.post(
+      endpoint: ApiConstants.changePassword,
+      body: {'currentPassword': currentPassword, 'newPassword': newPassword},
+      token: token,
+    );
+    _check(r, 'Could not change the password.', authenticated: true);
+  }
+
+  void _check(ApiResponse r, String fallback, {bool authenticated = false}) {
     if (r.isNetworkError) throw const NetworkException();
+    if (authenticated && (r.statusCode == 401 || r.statusCode == 403)) {
+      throw const AuthExpiredException();
+    }
     if (!r.isSuccess) {
       throw ApiException(r.statusCode, r.errorMessage ?? fallback);
     }

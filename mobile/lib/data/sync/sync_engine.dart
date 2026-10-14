@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/core.dart';
 import '../../services/photo_storage.dart';
 import '../local/data_sources/customer_local_data_source.dart';
@@ -23,11 +25,14 @@ class SyncResult {
   final bool offline;
   final bool authExpired;
 
+  final String? error;
+
   const SyncResult({
     this.pushed = 0,
     this.failed = 0,
     this.offline = false,
     this.authExpired = false,
+    this.error,
   });
 }
 
@@ -58,27 +63,34 @@ class SyncEngine {
   final AppSettingsRepository settings;
   final PhotoStorage photos;
 
-
-
+  // ------------------------------------------------------------------
+  // normal sync
+  // ------------------------------------------------------------------
   Future<SyncResult> sync(String userId) async {
     var pushed = 0;
     var failed = 0;
+    String? error;
 
     try {
       await queue.resetStuckProcessing(userId);
 
       final items = await queue.getRunnable(userId);
       items.sort(_compare);
+      debugPrint('[SYNC] start: ${items.length} queued change(s)');
       final failedEntityIds = <String>{};
 
       for (final item in items) {
-        if (_dependsOnFailed(item, failedEntityIds)) continue;
+        if (_dependsOnFailed(item, failedEntityIds)) {
+          debugPrint('[SYNC] skip ${item.entityType} ${item.entityId}: its parent failed');
+          continue;
+        }
 
         await queue.markProcessing(item.id!);
         try {
           await _pushItem(item);
           await _onSuccess(item);
           pushed++;
+          debugPrint('[SYNC] pushed ${item.operation} ${item.entityType} ${item.entityId}');
         } on NetworkException {
           await queue.markPendingAgain(item.id!);
           rethrow;
@@ -86,41 +98,73 @@ class SyncEngine {
           await queue.markPendingAgain(item.id!);
           rethrow;
         } on ApiException catch (e) {
+          debugPrint('[SYNC] FAILED ${item.operation} ${item.entityType} '
+              '${item.entityId}: HTTP ${e.statusCode} ${e.message}');
           await _onFailure(item, e.message);
           failedEntityIds.add(item.entityId);
+          error ??= '${_label(item.entityType)} ${item.operation.toLowerCase()} '
+              'failed: ${e.message} (HTTP ${e.statusCode})';
           failed++;
         } catch (e) {
+          debugPrint('[SYNC] FAILED ${item.operation} ${item.entityType} '
+              '${item.entityId}: $e');
           await _onFailure(item, e.toString());
           failedEntityIds.add(item.entityId);
+          error ??= '${_label(item.entityType)} ${item.operation.toLowerCase()} failed: $e';
           failed++;
         }
       }
 
-      final lastPull = await settings.getLastPull(userId);
-      final changes = await remote.fetchChanges(
-        since: lastPull?.subtract(const Duration(seconds: 5)),
-      );
-      await _applyCustomers(userId, changes.customers);
-      await _applySites(changes.sites);
-      await _applyNotes(changes.notes);
-      await settings.setLastPull(userId, changes.serverTime);
-      await _downloadPhotos(userId);
+      // pull what changed on the server
+      try {
+        final lastPull = await settings.getLastPull(userId);
+        final changes = await remote.fetchChanges(
+          since: lastPull?.subtract(const Duration(seconds: 5)),
+        );
+        debugPrint('[SYNC] pull: ${changes.customers.length} customers, '
+            '${changes.sites.length} sites, ${changes.notes.length} notes');
+        await _applyCustomers(userId, changes.customers);
+        await _applySites(changes.sites);
+        await _applyNotes(changes.notes);
+        await settings.setLastPull(userId, changes.serverTime);
+        await _downloadPhotos(userId);
+      } on NetworkException {
+        rethrow;
+      } on AuthExpiredException {
+        rethrow;
+      } on ApiException catch (e) {
+        debugPrint('[SYNC] pull FAILED: HTTP ${e.statusCode} ${e.message}');
+        error ??= 'Download failed: ${e.message} (HTTP ${e.statusCode})';
+      } catch (e) {
+        debugPrint('[SYNC] pull FAILED: $e');
+        error ??= 'Download failed: $e';
+      }
 
-      if (failed == 0) {
+      if (failed == 0 && error == null) {
         await settings.setLastSynced(userId, DateTime.now());
       }
+      debugPrint('[SYNC] done: pushed=$pushed failed=$failed error=$error');
       DataEvents.notify();
-      return SyncResult(pushed: pushed, failed: failed);
-    } on NetworkException {
+      return SyncResult(pushed: pushed, failed: failed, error: error);
+    } on NetworkException catch (e) {
+      debugPrint('[SYNC] cannot reach the server: ${e.message}');
       DataEvents.notify();
-      return SyncResult(pushed: pushed, failed: failed, offline: true);
+      return SyncResult(pushed: pushed, failed: failed, offline: true, error: e.message);
     } on AuthExpiredException {
+      debugPrint('[SYNC] token rejected (401/403) -> session expired');
       return SyncResult(pushed: pushed, failed: failed, authExpired: true);
     }
   }
 
+  String _label(String entityType) => switch (entityType) {
+        SyncEntityType.customer => 'Customer',
+        SyncEntityType.site => 'Site',
+        _ => 'Note',
+      };
 
-
+  // ------------------------------------------------------------------
+  // restore (first login on a fresh install / after "clear local data")
+  // ------------------------------------------------------------------
 
 
   Future<void> restore(
@@ -147,8 +191,9 @@ class SyncEngine {
     DataEvents.notify();
   }
 
-
-
+  // ------------------------------------------------------------------
+  // push helpers
+  // ------------------------------------------------------------------
   int _priority(String type) => switch (type) {
         SyncEntityType.customer => 0,
         SyncEntityType.site => 1,
@@ -221,8 +266,9 @@ class SyncEngine {
         .setSyncStatus(item.entityId, SyncStatus.syncFailed);
   }
 
-
-
+  // ------------------------------------------------------------------
+  // pull helpers
+  // ------------------------------------------------------------------
   Future<int> _applyCustomers(String userId, List<Map<String, dynamic>> list) async {
     final db = await helper.database;
     var applied = 0;
@@ -323,7 +369,7 @@ class SyncEngine {
       } on AuthExpiredException {
         rethrow;
       } catch (_) {
-
+        // one broken photo must not stop the sync; it is retried next time
       }
     }
     return downloaded;

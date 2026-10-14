@@ -37,7 +37,7 @@ public class SiteService {
         this.fieldNoteRepository = fieldNoteRepository;
     }
 
-    /** Idempotent when request.id() is supplied. */
+    
     public SiteResponse create(
         UUID userId,
         UUID customerId,
@@ -113,7 +113,7 @@ public class SiteService {
         return toResponse(siteRepository.save(site));
     }
 
-    /** Soft deletes the site together with its field notes. */
+    
     public void delete(
         UUID userId,
         UUID siteId

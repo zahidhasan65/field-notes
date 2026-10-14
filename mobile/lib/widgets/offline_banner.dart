@@ -36,7 +36,8 @@ class _Banner extends StatelessWidget {
     final failed = status == SyncUiStatus.failed;
     final n = state.unsyncedCount;
     final subtitle = failed
-        ? '${state.failedCount} change${state.failedCount == 1 ? '' : 's'} could not be synced.'
+        ? (state.lastError ??
+            '${state.failedCount} change${state.failedCount == 1 ? '' : 's'} could not be synced.')
         : n > 0
             ? '$n change${n == 1 ? '' : 's'} saved on this device. They sync automatically when you are back online.'
             : status.subtitle;

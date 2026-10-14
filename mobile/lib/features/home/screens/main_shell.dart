@@ -5,7 +5,11 @@ import '../../../app/session_helpers.dart';
 import '../../../data/data.dart';
 import '../../customers/bloc/customers_bloc.dart';
 import '../../customers/screens/customers_screen.dart';
+import '../../notifications/bloc/notifications_bloc.dart';
+import '../../profile/bloc/profile_bloc.dart';
 import '../../settings/screens/settings_screen.dart';
+import '../../sites/bloc/sites_bloc.dart';
+import '../../sites/screens/sites_screen.dart';
 import '../../sync/bloc/sync_bloc.dart';
 import '../bloc/home_bloc.dart';
 import 'home_tab.dart';
@@ -24,7 +28,10 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    context.read<SyncBloc>().add(SyncStarted(currentUserId(context)));
+    final userId = currentUserId(context);
+    context.read<SyncBloc>().add(SyncStarted(userId));
+    context.read<NotificationsBloc>().add(NotificationsStarted(userId));
+    context.read<ProfileBloc>().add(ProfileStarted(userId));
   }
 
   @override
@@ -47,13 +54,23 @@ class _MainShellState extends State<MainShell> {
             userId: userId,
           ),
         ),
+        BlocProvider(
+          create: (c) => SitesBloc(
+            repository: c.read<SiteRepository>(),
+            userId: userId,
+          ),
+        ),
       ],
       child: Scaffold(
         body: IndexedStack(
           index: _index,
           children: [
-            HomeTab(onGoCustomers: () => setState(() => _index = 1)),
+            HomeTab(
+              onGoCustomers: () => setState(() => _index = 1),
+              onGoSites: () => setState(() => _index = 2),
+            ),
             const CustomersScreen(),
+            const SitesScreen(embedded: true),
             const SettingsScreen(),
           ],
         ),
@@ -69,6 +86,10 @@ class _MainShellState extends State<MainShell> {
                 icon: Icon(Icons.people_outline),
                 selectedIcon: Icon(Icons.people),
                 label: 'Customers'),
+            NavigationDestination(
+                icon: Icon(Icons.location_city_outlined),
+                selectedIcon: Icon(Icons.location_city),
+                label: 'Sites'),
             NavigationDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),

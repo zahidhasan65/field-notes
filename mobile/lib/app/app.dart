@@ -5,6 +5,8 @@ import '../core/core.dart';
 import '../data/data.dart';
 import '../features/auth/bloc/auth_bloc.dart';
 import '../features/auth/data/auth_repository.dart';
+import '../features/notifications/bloc/notifications_bloc.dart';
+import '../features/profile/bloc/profile_bloc.dart';
 import '../features/settings/bloc/settings_bloc.dart';
 import '../features/sync/bloc/sync_bloc.dart';
 import '../services/location_service.dart';
@@ -49,36 +51,62 @@ class FieldNotesApp extends StatelessWidget {
                 connectivity: deps.connectivity,
                 queue: deps.queue,
                 settings: deps.settings,
+                notifications: deps.notifications,
               ),
             ),
             BlocProvider(create: (_) => SettingsBloc(repository: deps.settings)),
+            BlocProvider(create: (_) => NotificationsBloc(repository: deps.notifications)),
+            BlocProvider(
+              create: (_) => ProfileBloc(
+                authRepository: deps.auth,
+                settings: deps.settings,
+                photos: deps.photoStorage,
+                connectivity: deps.connectivity,
+                notifications: deps.notifications,
+              ),
+            ),
           ],
           child: MultiBlocListener(
             listeners: [
-
+              // Logged out (button, cleared data or expired session) -> back to Login.
               BlocListener<AuthBloc, AuthState>(
                 listenWhen: (prev, curr) =>
                     prev is AuthAuthenticated && curr is AuthUnauthenticated,
                 listener: (context, state) {
                   context.read<SyncBloc>().add(const SyncStopped());
+                  context.read<NotificationsBloc>().add(const NotificationsStopped());
+                  context.read<ProfileBloc>().add(const ProfileStopped());
                   navigatorKey.currentState
                       ?.pushNamedAndRemoveUntil(Routes.login, (_) => false);
                 },
               ),
-
+              // The server rejected our token while syncing.
               BlocListener<SyncBloc, SyncBlocState>(
                 listenWhen: (prev, curr) => !prev.sessionExpired && curr.sessionExpired,
                 listener: (context, state) =>
                     context.read<AuthBloc>().add(const AuthSessionExpired()),
               ),
+              // The name was changed on the profile screen: update the logged in user.
+              BlocListener<ProfileBloc, ProfileState>(
+                listenWhen: (prev, curr) =>
+                    curr.updatedUser != null && prev.nonce != curr.nonce,
+                listener: (context, state) =>
+                    context.read<AuthBloc>().add(AuthUserUpdated(state.updatedUser!)),
+              ),
             ],
-            child: MaterialApp(
-              title: 'Field Notes',
-              navigatorKey: navigatorKey,
-              debugShowCheckedModeBanner: false,
-              theme: buildTheme(),
-              initialRoute: Routes.splash,
-              onGenerateRoute: AppRouter.generate,
+            // light / dark / system comes from Settings
+            child: BlocBuilder<SettingsBloc, SettingsState>(
+              buildWhen: (prev, curr) => prev.themeMode != curr.themeMode,
+              builder: (context, settings) => MaterialApp(
+                title: 'Field Notes',
+                navigatorKey: navigatorKey,
+                debugShowCheckedModeBanner: false,
+                theme: buildTheme(),
+                darkTheme: buildTheme(brightness: Brightness.dark),
+                themeMode: settings.themeMode,
+                initialRoute: Routes.splash,
+                onGenerateRoute: AppRouter.generate,
+              ),
             ),
           ),
         ),

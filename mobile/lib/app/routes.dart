@@ -13,12 +13,15 @@ import '../features/customers/bloc/customer_form_bloc.dart';
 import '../features/customers/screens/add_customer_screen.dart';
 import '../features/customers/screens/customer_detail_screen.dart';
 import '../features/home/screens/main_shell.dart';
+import '../features/notifications/screens/notifications_screen.dart';
 import '../features/notes/bloc/note_detail_bloc.dart';
 import '../features/notes/bloc/note_form_bloc.dart';
 import '../features/notes/bloc/notes_bloc.dart';
 import '../features/notes/screens/add_note_screen.dart';
 import '../features/notes/screens/note_detail_screen.dart';
 import '../features/notes/screens/notes_screen.dart';
+import '../features/profile/screens/change_password_screen.dart';
+import '../features/profile/screens/profile_screen.dart';
 import '../features/restore/bloc/restore_bloc.dart';
 import '../features/restore/screens/restore_data_screen.dart';
 import '../features/sites/bloc/site_form_bloc.dart';
@@ -38,6 +41,9 @@ class Routes {
   static const forgotPassword = '/forgot-password'; // arg: String? email
   static const restore = '/restore';
   static const home = '/home';
+  static const profile = '/profile';
+  static const changePassword = '/change-password';
+  static const notifications = '/notifications';
   static const customerForm = '/customer/form'; // arg: CustomerLocal? (edit)
   static const customerDetail = '/customer'; // arg: String customerId
   static const sites = '/sites'; // arg: CustomerLocal? (filter)
@@ -71,6 +77,9 @@ class AppRouter {
             child: const RestoreDataScreen(),
           ),
       Routes.home => (_) => const MainShell(),
+      Routes.profile => (_) => const ProfileScreen(),
+      Routes.changePassword => (_) => const ChangePasswordScreen(),
+      Routes.notifications => (_) => const NotificationsScreen(),
       Routes.customerForm => (c) {
           final existing = a as CustomerLocal?;
           return BlocProvider(

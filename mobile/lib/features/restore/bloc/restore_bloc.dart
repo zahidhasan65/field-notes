@@ -71,7 +71,7 @@ class RestoreBloc extends Bloc<RestoreEvent, RestoreState> {
     try {
       await engine.restore(userId, onStage: (stage, count) async {
         emit(state.copyWith(done: {...state.done, stage: count}));
-
+        // short pause so the user can see each step
         await Future.delayed(const Duration(milliseconds: 350));
       });
       emit(state.copyWith(status: RestoreStatus.success));

@@ -31,7 +31,7 @@ class AuthRepository {
   }) async {
     final response = await remote.register(name: name, email: email, password: password);
     await _saveSession(response.token, response.user);
-
+    // a brand new account has nothing on the server to restore
     await settings.setRestoreDone(response.user.id);
     return response.user;
   }
@@ -40,6 +40,37 @@ class AuthRepository {
     final response = await remote.loginWithGoogle(idToken: idToken);
     await _saveSession(response.token, response.user);
     return response.user;
+  }
+
+  Future<AuthUserModel> updateName(String name) async {
+    final token = await _requireToken();
+    final user = await remote.updateName(token: token, name: name.trim());
+    await session.saveSession(
+      token: token,
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+    );
+    await users.upsert(id: user.id, name: user.name, email: user.email);
+    return user;
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final token = await _requireToken();
+    await remote.changePassword(
+      token: token,
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
+
+  Future<String> _requireToken() async {
+    final token = await session.getToken();
+    if (token == null || token.isEmpty) throw const AuthExpiredException();
+    return token;
   }
 
   Future<PasswordResetResult> requestPasswordReset(String email) =>

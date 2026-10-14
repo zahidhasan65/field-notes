@@ -15,7 +15,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 
-/** Stores note photos on disk (app.upload-dir). Only the file name is saved in the database. */
+
 @Service
 public class PhotoStorageService {
 

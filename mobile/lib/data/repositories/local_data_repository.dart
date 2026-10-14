@@ -19,6 +19,10 @@ class LocalDataRepository {
     final photoPaths = await notes.photoPathsForUser(userId);
     final db = await helper.database;
 
+    final profileRows = await db.query('app_settings',
+        where: 'key = ?', whereArgs: ['profile_photo:$userId'], limit: 1);
+    if (profileRows.isNotEmpty) photoPaths.add(profileRows.first['value'] as String);
+
     await db.transaction((txn) async {
       await txn.rawDelete('''
         DELETE FROM field_notes WHERE site_id IN (
@@ -31,10 +35,12 @@ class LocalDataRepository {
       );
       await txn.delete('customers', where: 'user_id = ?', whereArgs: [userId]);
       await txn.delete('sync_queue', where: 'user_id = ?', whereArgs: [userId]);
+      await txn.delete('notifications', where: 'user_id = ?', whereArgs: [userId]);
       await txn.delete(
         'app_settings',
-        where: 'key IN (?, ?, ?)',
+        where: 'key IN (?, ?, ?, ?)',
         whereArgs: [
+          'profile_photo:$userId',
           'restore_done:$userId',
           'last_pull:$userId',
           'last_synced:$userId',

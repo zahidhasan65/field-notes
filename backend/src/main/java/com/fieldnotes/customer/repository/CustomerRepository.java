@@ -12,7 +12,7 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     List<Customer> findAllByUserIdAndDeletedAtIsNull(UUID userId);
 
-    /** Includes soft deleted rows so clients can remove them (sync tombstones). */
+    
     List<Customer> findAllByUserIdAndUpdatedAtAfter(UUID userId, Instant since);
 
     Optional<Customer> findByIdAndUserIdAndDeletedAtIsNull(

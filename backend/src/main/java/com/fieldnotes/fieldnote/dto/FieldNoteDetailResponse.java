@@ -5,7 +5,7 @@ import com.fieldnotes.fieldnote.entity.NoteStatus;
 import java.time.Instant;
 import java.util.UUID;
 
-/** Note together with its site and customer (loaded with JOINs, nothing duplicated in the DB). */
+
 public record FieldNoteDetailResponse(
     UUID id,
     UUID siteId,

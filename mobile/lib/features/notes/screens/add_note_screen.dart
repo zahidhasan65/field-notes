@@ -189,9 +189,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.pal.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.pal.border),
                       ),
                       child: Row(children: [
                         const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.muted),

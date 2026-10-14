@@ -48,7 +48,7 @@ class NotesScreen extends StatelessWidget {
     );
   }
 
-  Widget _chip(String label, bool selected, VoidCallback onTap) => Padding(
+  Widget _chip(BuildContext context, String label, bool selected, VoidCallback onTap) => Padding(
         padding: const EdgeInsets.only(right: 8),
         child: ChoiceChip(
           label: Text(label),
@@ -57,12 +57,12 @@ class NotesScreen extends StatelessWidget {
           showCheckmark: false,
           selectedColor: AppColors.primary,
           labelStyle: TextStyle(
-            color: selected ? Colors.white : AppColors.text,
+            color: selected ? Colors.white : context.pal.text,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: AppColors.border),
+          backgroundColor: context.pal.surface,
+          side: BorderSide(color: context.pal.border),
         ),
       );
 
@@ -135,10 +135,10 @@ class NotesScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Material(
-                    color: state.siteId == null ? Colors.white : AppColors.primary.withOpacity(.12),
+                    color: state.siteId == null ? context.pal.surface : AppColors.primary.withOpacity(.12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppColors.border),
+                      side: BorderSide(color: context.pal.border),
                     ),
                     child: InkWell(
                       customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -154,9 +154,9 @@ class NotesScreen extends StatelessWidget {
                 SizedBox(
                   height: 36,
                   child: ListView(scrollDirection: Axis.horizontal, children: [
-                    _chip('All', state.statusFilter == null,
+                    _chip(context, 'All', state.statusFilter == null,
                         () => bloc.add(const NotesStatusFilterChanged(null))),
-                    ...NoteStatus.values.map((s) => _chip(s.label, state.statusFilter == s,
+                    ...NoteStatus.values.map((s) => _chip(context, s.label, state.statusFilter == s,
                         () => bloc.add(NotesStatusFilterChanged(s)))),
                   ]),
                 ),

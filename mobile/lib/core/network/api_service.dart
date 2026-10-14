@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
@@ -36,7 +35,6 @@ class ApiService {
     String fieldName = 'file',
     required String token,
   }) async {
-    final uploadTimeout = ApiConstants.timeout * 3;
     try {
       final request = http.MultipartRequest(
         'POST',
@@ -50,10 +48,8 @@ class ApiService {
         contentType: _mediaTypeFor(filePath),
       ));
 
-      final streamed = await request.send().timeout(uploadTimeout);
-
-      final response =
-      await http.Response.fromStream(streamed).timeout(uploadTimeout);
+      final streamed = await request.send().timeout(ApiConstants.timeout * 3);
+      final response = await http.Response.fromStream(streamed).timeout(ApiConstants.timeout * 3);
       return _toApiResponse(response);
     } catch (e) {
       return _networkError(e);
@@ -67,19 +63,19 @@ class ApiService {
     try {
       final response = await http
           .get(
-        Uri.parse('${ApiConstants.baseUrl}$endpoint'),
-        headers: {'Authorization': 'Bearer $token'},
-      )
+            Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
           .timeout(ApiConstants.timeout * 3);
 
       final ok = response.statusCode >= 200 && response.statusCode < 300;
       return (
-      response: ApiResponse(
-        isSuccess: ok,
-        statusCode: response.statusCode,
-        errorMessage: ok ? null : 'Download failed (${response.statusCode}).',
-      ),
-      bytes: ok ? response.bodyBytes : null,
+        response: ApiResponse(
+          isSuccess: ok,
+          statusCode: response.statusCode,
+          errorMessage: ok ? null : 'Download failed (${response.statusCode}).',
+        ),
+        bytes: ok ? response.bodyBytes : null,
       );
     } catch (e) {
       return (response: _networkError(e), bytes: null);
@@ -87,11 +83,11 @@ class ApiService {
   }
 
   Future<ApiResponse> _sendJson(
-      String method,
-      String endpoint, {
-        Map<String, dynamic>? body,
-        String? token,
-      }) async {
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
     try {
       final request = http.Request(
         method,
@@ -107,9 +103,7 @@ class ApiService {
       }
 
       final streamed = await request.send().timeout(ApiConstants.timeout);
-
-      final response = await http.Response.fromStream(streamed)
-          .timeout(ApiConstants.timeout);
+      final response = await http.Response.fromStream(streamed).timeout(ApiConstants.timeout * 3);
       return _toApiResponse(response);
     } catch (e) {
       return _networkError(e);
@@ -127,10 +121,6 @@ class ApiService {
     }
 
     final ok = response.statusCode >= 200 && response.statusCode < 300;
-    if (!ok) {
-      debugPrint('API ${response.statusCode} ${response.request?.url}: '
-          '${response.body}');
-    }
     return ApiResponse(
       isSuccess: ok,
       statusCode: response.statusCode,
@@ -139,20 +129,13 @@ class ApiService {
     );
   }
 
-
   ApiResponse _networkError(Object e) {
-    debugPrint('API error: $e');
-    final unreachable = e is SocketException ||
-        e is TimeoutException ||
-        e is http.ClientException;
-
-    return ApiResponse(
-      isSuccess: false,
-      statusCode: unreachable ? 0 : -1,
-      errorMessage: unreachable
-          ? 'Cannot reach the server. Check your internet connection.'
-          : e.toString(),
-    );
+    final message = (e is SocketException ||
+            e is TimeoutException ||
+            e is http.ClientException)
+        ? 'Cannot reach the server. Check your internet connection.'
+        : e.toString();
+    return ApiResponse(isSuccess: false, statusCode: 0, errorMessage: message);
   }
 
   MediaType _mediaTypeFor(String path) {

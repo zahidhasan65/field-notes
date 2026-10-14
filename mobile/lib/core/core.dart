@@ -9,6 +9,7 @@ export 'storage/session_storage.dart';
 export 'theme/app_colors.dart';
 export 'theme/app_theme.dart';
 export 'utils/formatters.dart';
+export 'utils/greeting.dart';
 export 'utils/load_status.dart';
 export 'utils/snack.dart';
 export 'utils/uuid.dart';

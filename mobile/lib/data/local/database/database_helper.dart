@@ -9,7 +9,7 @@ class DatabaseHelper {
 
   static final DatabaseHelper instance = DatabaseHelper._internal();
 
-  static const int _version = 2;
+  static const int _version = 3;
   static Database? _database;
 
   Future<Database> get database async => _database ??= await _open();
@@ -111,11 +111,30 @@ class DatabaseHelper {
       )
     ''');
 
+    await _createNotificationsTable(db);
+
     await db.execute('CREATE INDEX idx_customers_user ON customers(user_id)');
     await db.execute('CREATE INDEX idx_sites_customer ON sites(customer_id)');
     await db.execute('CREATE INDEX idx_notes_site ON field_notes(site_id)');
     await db.execute('CREATE INDEX idx_notes_date ON field_notes(note_datetime)');
     await db.execute('CREATE INDEX idx_queue_user ON sync_queue(user_id, status)');
+  }
+
+  Future<void> _createNotificationsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS notifications (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT,
+        created_at TEXT NOT NULL,
+        is_read INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, created_at)',
+    );
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -131,6 +150,9 @@ class DatabaseHelper {
         "ALTER TABLE sync_queue ADD COLUMN user_id TEXT NOT NULL DEFAULT ''",
       );
     }
+    if (oldVersion < 3) {
+      await _createNotificationsTable(db);
+    }
   }
 
   Future<void> wipeEverything() async {
@@ -140,6 +162,7 @@ class DatabaseHelper {
       await txn.delete('sites');
       await txn.delete('customers');
       await txn.delete('sync_queue');
+      await txn.delete('notifications');
       await txn.delete('app_settings');
     });
   }

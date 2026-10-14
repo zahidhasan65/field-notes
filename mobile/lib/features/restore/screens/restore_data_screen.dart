@@ -41,7 +41,7 @@ class RestoreDataScreen extends StatelessWidget {
           final activeIndex = finished || failed ? -1 : done;
 
           return Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: context.pal.surface,
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -80,7 +80,7 @@ class RestoreDataScreen extends StatelessWidget {
                         value: v,
                         minHeight: 8,
                         color: failed ? AppColors.red : AppColors.primary,
-                        backgroundColor: AppColors.bg,
+                        backgroundColor: context.pal.bg,
                       ),
                     ),
                   ),

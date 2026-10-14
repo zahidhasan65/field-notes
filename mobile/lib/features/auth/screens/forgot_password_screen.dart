@@ -87,8 +87,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           final onOtpStep = state.step == ForgotStep.otp;
 
           return Scaffold(
-            backgroundColor: Colors.white,
-            appBar: AppBar(backgroundColor: Colors.white),
+            backgroundColor: context.pal.surface,
+            appBar: AppBar(backgroundColor: context.pal.surface),
             body: SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),

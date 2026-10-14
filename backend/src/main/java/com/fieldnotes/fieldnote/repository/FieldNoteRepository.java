@@ -21,7 +21,7 @@ public interface FieldNoteRepository
 
     List<FieldNote> findAllBySiteCustomerUserIdAndDeletedAtIsNull(UUID userId);
 
-    /** Includes soft deleted rows (sync tombstones). */
+    
     List<FieldNote> findAllBySiteCustomerUserIdAndUpdatedAtAfter(UUID userId, Instant since);
 
     Optional<FieldNote> findByIdAndSiteCustomerUserIdAndDeletedAtIsNull(

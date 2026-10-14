@@ -8,9 +8,11 @@ import '../../../data/data.dart';
 import '../../../widgets/widgets.dart';
 import '../bloc/sites_bloc.dart';
 
+
 class SitesScreen extends StatelessWidget {
   final CustomerLocal? customer;
-  const SitesScreen({super.key, this.customer});
+  final bool embedded;
+  const SitesScreen({super.key, this.customer, this.embedded = false});
 
   Future<void> _delete(BuildContext context, SiteLocal s) async {
     final impact = await context.read<SiteRepository>().deleteImpact(s.id);
@@ -23,25 +25,37 @@ class SitesScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-            title: Text(customer == null ? 'Sites' : '${customer!.name} - Sites')),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-          child: Column(children: [
-            const OfflineBanner(),
-            SearchBox(
-              hint: 'Search sites...',
-              onChanged: (v) => context.read<SitesBloc>().add(SitesQueryChanged(v)),
-            ),
-            const SizedBox(height: 12),
-            AppButton('Add Site',
-                icon: Icons.add,
-                onPressed: () =>
-                    Navigator.pushNamed(context, Routes.siteForm, arguments: customer)),
-            const SizedBox(height: 14),
-            Expanded(
-              child: RefreshIndicator(
+  Widget build(BuildContext context) {
+    final content = Padding(
+      padding: EdgeInsets.fromLTRB(16, embedded ? 16 : 4, 16, 0),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (embedded) ...[
+          const Text('Sites', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 14),
+        ],
+        const OfflineBanner(),
+        SearchBox(
+          hint: 'Search sites...',
+          onChanged: (v) => context.read<SitesBloc>().add(SitesQueryChanged(v)),
+        ),
+        const SizedBox(height: 12),
+        AppButton('Add Site',
+            icon: Icons.add,
+            onPressed: () => Navigator.pushNamed(context, Routes.siteForm, arguments: customer)),
+        const SizedBox(height: 14),
+        Expanded(child: _list(context)),
+      ]),
+    );
+
+    if (embedded) return SafeArea(child: content);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(customer == null ? 'Sites' : '${customer!.name} - Sites')),
+      body: content,
+    );
+  }
+
+  Widget _list(BuildContext context) => RefreshIndicator(
                 onRefresh: () => refreshWithSync(context),
                 child: BlocBuilder<SitesBloc, SitesState>(
                   builder: (context, state) {
@@ -110,9 +124,5 @@ class SitesScreen extends StatelessWidget {
                     );
                   },
                 ),
-              ),
-            ),
-          ]),
-        ),
       );
 }

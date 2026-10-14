@@ -19,7 +19,7 @@ public interface SiteRepository extends JpaRepository<Site, UUID> {
 
     List<Site> findAllByCustomerUserIdAndDeletedAtIsNull(UUID userId);
 
-    /** Includes soft deleted rows (sync tombstones). */
+    
     List<Site> findAllByCustomerUserIdAndUpdatedAtAfter(UUID userId, Instant since);
 
     Optional<Site> findByIdAndCustomerUserIdAndDeletedAtIsNull(

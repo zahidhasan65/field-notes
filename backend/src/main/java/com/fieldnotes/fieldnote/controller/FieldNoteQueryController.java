@@ -23,13 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Cross-site queries and photo endpoints.
- *  GET    /api/field-notes?search=&status=&siteId=   (JOIN based search / filter)
- *  POST   /api/field-notes/{id}/photo                (multipart, field "file")
- *  GET    /api/field-notes/{id}/photo
- *  DELETE /api/field-notes/{id}/photo
- */
+
 @RestController
 @RequestMapping("/api/field-notes")
 public class FieldNoteQueryController {

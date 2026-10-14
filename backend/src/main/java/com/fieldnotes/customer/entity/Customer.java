@@ -41,7 +41,7 @@ public class Customer extends BaseEntity {
         super();
     }
 
-    /** id is the client generated UUID (offline-first); a random one is used when null. */
+    
     public Customer(
         UUID id,
         User user,

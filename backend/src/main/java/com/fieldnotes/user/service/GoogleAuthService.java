@@ -10,14 +10,7 @@ import org.springframework.web.client.RestClientException;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Verifies a Google ID token (sent by the app after "Continue with Google").
- * Google's tokeninfo endpoint checks the signature and expiry for us; we check
- * that the token was issued for OUR client id and that the e-mail is verified.
- *
- * Needs GOOGLE_CLIENT_ID = the "Web application" OAuth client id (same value the app
- * passes as GOOGLE_SERVER_CLIENT_ID).
- */
+
 @Service
 public class GoogleAuthService {
 

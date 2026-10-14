@@ -12,7 +12,7 @@ void showSyncSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.bg,
+    backgroundColor: context.pal.bg,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (_) => BlocProvider.value(value: bloc, child: const _SyncSheet()),
   );
@@ -61,7 +61,23 @@ class _SyncSheet extends StatelessWidget {
                     color: state.pendingCount > 0 ? AppColors.orange : AppColors.green),
                 _row('Failed', '${state.failedCount}',
                     color: state.failedCount > 0 ? AppColors.red : AppColors.green),
-                const SizedBox(height: 16),
+                if (state.lastError != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.red.withOpacity(.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(state.lastError!,
+                        style: const TextStyle(color: AppColors.red, fontSize: 12.5)),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text('Server: ${ApiConstants.baseUrl}',
+                    style: const TextStyle(color: AppColors.muted, fontSize: 11.5)),
+                const SizedBox(height: 12),
                 AppButton(
                   'Sync now',
                   icon: Icons.sync,

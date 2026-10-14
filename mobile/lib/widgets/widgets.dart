@@ -24,3 +24,4 @@ export 'status_chip.dart';
 export 'sync_badge.dart';
 export 'sync_sheet.dart';
 export 'sync_status_pill.dart';
+export 'user_avatar.dart';

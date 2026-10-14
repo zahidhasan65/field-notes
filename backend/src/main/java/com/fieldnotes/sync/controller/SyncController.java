@@ -23,8 +23,7 @@ public class SyncController {
         this.syncService = syncService;
     }
 
-    /** GET /api/sync/changes            -> full snapshot (restore)
-     *  GET /api/sync/changes?since=ISO  -> incremental changes + tombstones */
+    
     @GetMapping("/changes")
     public ResponseEntity<SyncChangesResponse> changes(
         Authentication authentication,

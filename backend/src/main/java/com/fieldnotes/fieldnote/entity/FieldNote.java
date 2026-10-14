@@ -39,7 +39,7 @@ public class FieldNote extends BaseEntity {
 
     private Double longitude;
 
-    /** File name of the stored photo (never exposed directly, see photoUrl in responses). */
+    
     @Column(name = "photo_path", length = 500)
     private String photoPath;
 

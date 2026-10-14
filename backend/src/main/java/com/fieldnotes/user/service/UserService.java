@@ -96,10 +96,7 @@ public class UserService {
         return new LoginResponse(token, "Bearer", userResponse);
     }
 
-    /**
-     * "Continue with Google": verifies the Google ID token, then logs the user in.
-     * First time = an account is created (random password, the user signs in with Google).
-     */
+    
     public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
         GoogleAuthService.GoogleProfile profile =
             googleAuthService.verify(request.idToken());

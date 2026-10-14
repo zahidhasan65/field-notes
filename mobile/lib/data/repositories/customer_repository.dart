@@ -129,6 +129,7 @@ class CustomerRepository {
       final noteIds = await notes.idsBySites(txn, siteIds);
       photoPaths = await notes.photoPathsByIds(txn, noteIds);
 
+      // children are removed by the server together with the customer
       await queue.removeForEntities(txn, SyncEntityType.fieldNote, noteIds);
       await queue.removeForEntities(txn, SyncEntityType.site, siteIds);
       await notes.softDeleteMany(txn, noteIds, now, syncStatus: SyncStatus.synced);

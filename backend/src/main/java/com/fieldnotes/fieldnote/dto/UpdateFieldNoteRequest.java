@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.UUID;
 
-/** "siteId" is optional: set it to move the note to another site. */
+
 public record UpdateFieldNoteRequest(
     UUID siteId,
 

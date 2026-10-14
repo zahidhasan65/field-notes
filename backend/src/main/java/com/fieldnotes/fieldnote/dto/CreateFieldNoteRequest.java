@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.UUID;
 
-/** "id" is an optional client generated id (idempotent create). */
+
 public record CreateFieldNoteRequest(
     UUID id,
 

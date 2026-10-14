@@ -10,9 +10,11 @@ class MapPlaceholder extends StatelessWidget {
         height: height,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFFE6EEF6),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF223049)
+              : const Color(0xFFE6EEF6),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.pal.border),
         ),
         child: Stack(alignment: Alignment.center, children: [
           Icon(Icons.map_outlined, size: height * 0.8, color: Colors.white.withOpacity(.8)),

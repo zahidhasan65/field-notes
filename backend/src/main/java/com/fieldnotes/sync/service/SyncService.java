@@ -46,10 +46,7 @@ public class SyncService {
         this.fieldNoteService = fieldNoteService;
     }
 
-    /**
-     * since == null  -> full snapshot of the user's live data (used to restore after reinstall)
-     * since != null  -> only rows changed after "since", including soft deleted ones
-     */
+    
     public SyncChangesResponse getChanges(UUID userId, Instant since) {
         Instant serverTime = Instant.now();
 

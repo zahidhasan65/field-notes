@@ -21,7 +21,7 @@ public class User extends BaseEntity {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    /** BCrypt hash of the 6 digit password reset OTP (null = no reset in progress). */
+    
     @Column(name = "reset_otp_hash", length = 255)
     private String resetOtpHash;
 

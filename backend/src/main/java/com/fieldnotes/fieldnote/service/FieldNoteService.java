@@ -47,7 +47,7 @@ public class FieldNoteService {
         this.photoStorage = photoStorage;
     }
 
-    /** Idempotent when request.id() is supplied. */
+    
     public FieldNoteResponse create(
         UUID userId,
         UUID siteId,
@@ -105,10 +105,7 @@ public class FieldNoteService {
         return toResponse(getFieldNote(userId, fieldNoteId));
     }
 
-    /**
-     * Search / filter across notes using JOINs (note -> site -> customer).
-     * search matches title, description, site name and customer name.
-     */
+    
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
     public List<FieldNoteDetailResponse> search(

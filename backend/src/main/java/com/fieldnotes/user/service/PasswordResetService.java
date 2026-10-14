@@ -15,16 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * Forgot password with a 6 digit OTP.
- *
- * Flow: POST /api/auth/forgot-password (email) -> OTP created, stored hashed, valid 10 min
- *       POST /api/auth/reset-password  (email, otp, newPassword) -> password changed
- *
- * DEMO MODE: there is no e-mail provider, so while app.auth.dev-otp-enabled=true the OTP
- * is returned in the response and the app shows it in a snackbar. In production set
- * DEV_OTP_ENABLED=false and send the OTP by e-mail instead.
- */
+
 @Service
 @Transactional
 public class PasswordResetService {
@@ -77,7 +68,7 @@ public class PasswordResetService {
         );
     }
 
-    /** noRollbackFor: a wrong OTP must still count as an attempt. */
+    
     @Transactional(noRollbackFor = IllegalArgumentException.class)
     public void resetPassword(ResetPasswordRequest request) {
         User user = userRepository

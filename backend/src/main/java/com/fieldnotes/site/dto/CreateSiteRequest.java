@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
-/** "id" is an optional client generated id (idempotent create). */
+
 public record CreateSiteRequest(
     UUID id,
 

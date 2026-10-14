@@ -7,6 +7,7 @@ import '../../../services/google_auth_service.dart';
 import '../data/auth_repository.dart';
 import '../models/auth_user_model.dart';
 
+// ---------------- events ----------------
 sealed class AuthEvent extends Equatable {
   const AuthEvent();
   @override
@@ -38,6 +39,13 @@ class AuthRegisterRequested extends AuthEvent {
   List<Object?> get props => [name, email, password];
 }
 
+class AuthUserUpdated extends AuthEvent {
+  final AuthUserModel user;
+  const AuthUserUpdated(this.user);
+  @override
+  List<Object?> get props => [user.id, user.name, user.email];
+}
+
 class AuthGoogleLoginRequested extends AuthEvent {
   const AuthGoogleLoginRequested();
 }
@@ -50,6 +58,7 @@ class AuthSessionExpired extends AuthEvent {
   const AuthSessionExpired();
 }
 
+// ---------------- states ----------------
 sealed class AuthState extends Equatable {
   const AuthState();
   @override
@@ -87,6 +96,7 @@ class AuthFailure extends AuthState {
   List<Object?> get props => [message];
 }
 
+// ---------------- bloc ----------------
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required this.repository,
@@ -98,6 +108,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegisterRequested>(_onRegister);
     on<AuthGoogleLoginRequested>(_onGoogleLogin);
     on<AuthLogoutRequested>(_onLogout);
+    on<AuthUserUpdated>((event, emit) {
+      if (state is AuthAuthenticated) {
+        emit(AuthAuthenticated(user: event.user, needsRestore: false));
+      }
+    });
     on<AuthSessionExpired>(_onSessionExpired);
   }
 
